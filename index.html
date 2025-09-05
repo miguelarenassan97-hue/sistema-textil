@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Control Textil v3.0 - Firebase</title>
+    
+    <!-- Firebase SDKs v10 -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            signOut,
+            onAuthStateChanged 
+        } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            getDocs,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            query, 
+            where, 
+            orderBy, 
+            limit,
+            onSnapshot,
+            serverTimestamp 
+        } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        
+        // TU CONFIGURACIÓN DE FIREBASE (reemplaza con tus datos)
+        const firebaseConfig = {
+            apiKey: "TU-API-KEY",
+            authDomain: "TU-AUTH-DOMAIN",
+            projectId: "TU-PROJECT-ID",
+            storageBucket: "TU-STORAGE-BUCKET",
+            messagingSenderId: "TU-MESSAGING-SENDER-ID",
+            appId: "TU-APP-ID"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Make Firebase available globally
+        window.firebaseAuth = auth;
+        window.firebaseDB = db;
+        window.firebase = {
+            auth: {
+                signInWithEmailAndPassword,
+                signOut,
+                onAuthStateChanged
+            },
+            db: {
+                collection,
+                doc,
+                setDoc,
+                getDoc,
+                getDocs,
+                addDoc,
+                updateDoc,
+                deleteDoc,
+                query,
+                where,
+                orderBy,
+                limit,
+                onSnapshot,
+                serverTimestamp
+            }
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6B46C1;
+            --primary-dark: #553C9A;
+            --secondary: #3B82F6;
+            --secondary-dark: #2563EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light: #F3F4F6;
+            --white: #FFFFFF;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        /* Login Screen Mejorado */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-title {
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            color: var(--gray);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+        }
+
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1.25rem;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(107, 70, 193, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #FEE2E2;
+            color: #DC2626;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Header con KPIs */
+        .header-kpis {
+            background: rgba(255,255,255,0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .kpi-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .kpi-group {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .kpi-card {
+            background: var(--gradient);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            min-width: 140px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-bottom: 0.25rem;
+        }
+
+        .kpi-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-badge {
+            background: var(--light);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+
+        .sync-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--success);
+            color: white;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .sync-indicator.offline {
+            background: var(--warning);
+        }
+
+        .sync-indicator.syncing {
+            background: var(--secondary);
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* El resto de los estilos permanecen iguales... */
+        /* (Copiamos todos los estilos del archivo original aquí) */
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen Mejorado -->
+    <div id="login-screen" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-title">✂️ Control Textil v3.0</h1>
+                <p class="login-subtitle">Sistema de Materia Prima y Corte</p>
+                <div style="margin-top: 0.5rem;">
+                    <span class="sync-indicator syncing">
+                        <span class="sync-dot"></span>
+                        <span>Versión en la Nube</span>
+                    </span>
+                </div>
+            </div>
+            
+            <form id="login-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" class="form-input" id="login-email" 
+                           placeholder="usuario@empresa.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" class="form-input" id="login-password" 
+                               placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" 
+                                onclick="FirebaseApp.auth.togglePassword()">
+                            <span id="password-icon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="login-btn" 
+                        onclick="FirebaseApp.auth.login()">
+                    <span id="login-btn-text">Iniciar Sesión</span>
+                    <span id="login-spinner" class="loading-spinner hidden"></span>
+                </button>
+                
+                <div id="login-error" class="error-message">
+                    <!-- Los mensajes de error se mostrarán aquí -->
+                </div>
+            </form>
+            
+            <div style="margin-top: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem;">
+                <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
+                    <strong>Usuarios de Prueba:</strong>
+                </p>
+                <div style="font-size: 0.75rem; color: #6b7280; line-height: 1.5;">
+                    Admin: admin@empresa.com<br>
+                    Cortador: cortador@empresa.com<br>
+                    Maquilero: maquilero@empresa.com<br>
+                    <br>
+                    <em>Contraseñas configuradas por el administrador</em>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App (copiamos todo el contenido del original) -->
+    <div id="main-app" class="hidden">
+        <!-- Aquí va todo el contenido del main-app del archivo original -->
+    </div>
+
+    <!-- JavaScript Principal con Firebase -->
+    <script type="module">
+        // Esperar a que Firebase esté listo
+        setTimeout(() => {
+            // Sistema con Firebase
+            window.FirebaseApp = {
+                // Estado global
+                state: {
+                    currentUser: null,
+                    syncStatus: 'offline',
+                    listeners: []
+                },
+                
+                // Inicialización
+                async init() {
+                    console.log('=== Sistema Control Textil v3.0 Firebase ===');
+                    
+                    // Verificar estado de autenticación
+                    window.firebase.auth.onAuthStateChanged(window.firebaseAuth, async (user) => {
+                        if (user) {
+                            await this.auth.handleUserLoggedIn(user);
+                        } else {
+                            this.auth.showLoginScreen();
+                        }
+                    });
+                    
+                    // Detectar conectividad
+                    window.addEventListener('online', () => this.updateSyncStatus('online'));
+                    window.addEventListener('offline', () => this.updateSyncStatus('offline'));
+                },
+                
+                // Módulo de Autenticación
+                auth: {
+                    togglePassword() {
+                        const input = document.getElementById('login-password');
+                        const icon = document.getElementById('password-icon');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.textContent = '🙈';
+                        } else {
+                            input.type = 'password';
+                            icon.textContent = '👁️';
+                        }
+                    },
+                    
+                    async login() {
+                        const email = document.getElementById('login-email').value;
+                        const password = document.getElementById('login-password').value;
+                        const btn = document.getElementById('login-btn');
+                        const btnText = document.getElementById('login-btn-text');
+                        const spinner = document.getElementById('login-spinner');
+                        const errorDiv = document.getElementById('login-error');
+                        
+                        if (!email || !password) {
+                            this.showError('Por favor complete todos los campos');
+                            return;
+                        }
+                        
+                        // Mostrar loading
+                        btn.disabled = true;
+                        btnText.textContent = 'Ingresando...';
+                        spinner.classList.remove('hidden');
+                        errorDiv.classList.remove('show');
+                        
+                        try {
+                            const userCredential = await window.firebase.auth.signInWithEmailAndPassword(
+                                window.firebaseAuth, 
+                                email, 
+                                password
+                            );
+                            
+                            // El onAuthStateChanged manejará el resto
+                            
+                        } catch (error) {
+                            console.error('Error login:', error);
+                            let message = 'Error al iniciar sesión';
+                            
+                            switch(error.code) {
+                                case 'auth/invalid-email':
+                                    message = 'Correo electrónico inválido';
+                                    break;
+                                case 'auth/user-disabled':
+                                    message = 'Esta cuenta ha sido deshabilitada';
+                                    break;
+                                case 'auth/user-not-found':
+                                    message = 'Usuario no encontrado';
+                                    break;
+                                case 'auth/wrong-password':
+                                    message = 'Contraseña incorrecta';
+                                    break;
+                                case 'auth/invalid-credential':
+                                    message = 'Credenciales inválidas';
+                                    break;
+                                case 'auth/network-request-failed':
+                                    message = 'Error de conexión. Verifique su internet';
+                                    break;
+                                case 'auth/too-many-requests':
+                                    message = 'Demasiados intentos. Intente más tarde';
+                                    break;
+                            }
+                            
+                            this.showError(message);
+                        } finally {
+                            btn.disabled = false;
+                            btnText.textContent = 'Iniciar Sesión';
+                            spinner.classList.add('hidden');
+                        }
+                    },
+                    
+                    showError(message) {
+                        const errorDiv = document.getElementById('login-error');
+                        errorDiv.textContent = message;
+                        errorDiv.classList.add('show');
+                    },
+                    
+                    async handleUserLoggedIn(user) {
+                        try {
+                            // Obtener datos del usuario desde Firestore
+                            const userDoc = await window.firebase.db.getDoc(
+                                window.firebase.db.doc(window.firebaseDB, 'users', user.uid)
+                            );
+                            
+                            let userData = {
+                                uid: user.uid,
+                                email: user.email,
+                                nombre: user.displayName || user.email.split('@')[0],
+                                rol: 'viewer'
+                            };
+                            
+                            if (userDoc.exists()) {
+                                userData = { ...userData, ...userDoc.data() };
+                            } else {
+                                // Crear documento de usuario si no existe
+                                await window.firebase.db.setDoc(
+                                    window.firebase.db.doc(window.firebaseDB, 'users', user.uid),
+                                    {
+                                        email: user.email,
+                                        nombre: userData.nombre,
+                                        rol: userData.rol,
+                                        createdAt: window.firebase.db.serverTimestamp()
+                                    }
+                                );
+                            }
+                            
+                            FirebaseApp.state.currentUser = userData;
+                            
+                            // Ocultar login y mostrar app
+                            document.getElementById('login-screen').classList.add('hidden');
+                            document.getElementById('main-app').classList.remove('hidden');
+                            
+                            // Actualizar UI con datos del usuario
+                            if (document.getElementById('user-name')) {
+                                document.getElementById('user-name').textContent = userData.nombre;
+                            }
+                            if (document.getElementById('user-role')) {
+                                document.getElementById('user-role').textContent = `(${userData.rol})`;
+                            }
+                            
+                            // Cargar datos y configurar interfaz
+                            await FirebaseApp.data.loadFromFirebase();
+                            FirebaseApp.ui.configurarInterfaz();
+                            FirebaseApp.ui.showSection('dashboard');
+                            FirebaseApp.ui.toast(`Bienvenido ${userData.nombre}`, 'success');
+                            
+                        } catch (error) {
+                            console.error('Error getting user data:', error);
+                            FirebaseApp.ui.toast('Error al cargar datos del usuario', 'danger');
+                        }
+                    },
+                    
+                    showLoginScreen() {
+                        document.getElementById('login-screen').classList.remove('hidden');
+                        document.getElementById('main-app').classList.add('hidden');
+                    },
+                    
+                    async logout() {
+                        if (confirm('¿Desea cerrar sesión?')) {
+                            try {
+                                // Detener todos los listeners
+                                FirebaseApp.state.listeners.forEach(unsubscribe => unsubscribe());
+                                FirebaseApp.state.listeners = [];
+                                
+                                await window.firebase.auth.signOut(window.firebaseAuth);
+                                FirebaseApp.state.currentUser = null;
+                                
+                                FirebaseApp.ui.toast('Sesión cerrada', 'info');
+                            } catch (error) {
+                                console.error('Error logout:', error);
+                                FirebaseApp.ui.toast('Error al cerrar sesión', 'danger');
+                            }
+                        }
+                    }
+                },
+                
+                // Módulo de Datos con Firebase
+                data: {
+                    async loadFromFirebase() {
+                        try {
+                            FirebaseApp.updateSyncStatus('syncing');
+                            
+                            // Cargar colecciones principales
+                            const collections = [
+                                'materiales',
+                                'proveedores',
+                                'maquileros',
+                                'ordenes_compra',
+                                'ordenes_corte',
+                                'rollos',
+                                'movimientos'
+                            ];
+                            
+                            for (const collectionName of collections) {
+                                await this.loadCollection(collectionName);
+                            }
+                            
+                            // Configurar listeners en tiempo real
+                            this.setupRealtimeListeners();
+                            
+                            FirebaseApp.updateSyncStatus('online');
+                            FirebaseApp.ui.updateKPIs();
+                            
+                        } catch (error) {
+                            console.error('Error loading from Firebase:', error);
+                            FirebaseApp.updateSyncStatus('offline');
+                            FirebaseApp.ui.toast('Error al cargar datos', 'danger');
+                        }
+                    },
+                    
+                    async loadCollection(collectionName) {
+                        try {
+                            const querySnapshot = await window.firebase.db.getDocs(
+                                window.firebase.db.collection(window.firebaseDB, collectionName)
+                            );
+                            
+                            const data = [];
+                            querySnapshot.forEach(doc => {
+                                data.push({ id: doc.id, ...doc.data() });
+                            });
+                            
+                            // Guardar en memoria local
+                            if (!window.AppData) window.AppData = {};
+                            window.AppData[collectionName] = data;
+                            
+                        } catch (error) {
+                            console.error(`Error loading ${collectionName}:`, error);
+                        }
+                    },
+                    
+                    setupRealtimeListeners() {
+                        // Listener para cambios en inventario
+                        const unsubscribeInventario = window.firebase.db.onSnapshot(
+                            window.firebase.db.collection(window.firebaseDB, 'materiales'),
+                            (snapshot) => {
+                                snapshot.docChanges().forEach((change) => {
+                                    if (change.type === 'modified') {
+                                        FirebaseApp.ui.updateKPIs();
+                                    }
+                                });
+                            }
+                        );
+                        
+                        FirebaseApp.state.listeners.push(unsubscribeInventario);
+                    },
+                    
+                    async saveToFirebase(collection, data, docId = null) {
+                        try {
+                            FirebaseApp.updateSyncStatus('syncing');
+                            
+                            if (docId) {
+                                // Actualizar documento existente
+                                await window.firebase.db.setDoc(
+                                    window.firebase.db.doc(window.firebaseDB, collection, docId),
+                                    {
+                                        ...data,
+                                        updatedAt: window.firebase.db.serverTimestamp(),
+                                        updatedBy: FirebaseApp.state.currentUser.uid
+                                    },
+                                    { merge: true }
+                                );
+                            } else {
+                                // Crear nuevo documento
+                                const docRef = await window.firebase.db.addDoc(
+                                    window.firebase.db.collection(window.firebaseDB, collection),
+                                    {
+                                        ...data,
+                                        createdAt: window.firebase.db.serverTimestamp(),
+                                        createdBy: FirebaseApp.state.currentUser.uid
+                                    }
+                                );
+                                data.id = docRef.id;
+                            }
+                            
+                            FirebaseApp.updateSyncStatus('online');
+                            return data;
+                            
+                        } catch (error) {
+                            console.error('Error saving to Firebase:', error);
+                            FirebaseApp.updateSyncStatus('offline');
+                            throw error;
+                        }
+                    }
+                },
+                
+                // Módulo UI
+                ui: {
+                    configurarInterfaz() {
+                        // Configurar menú según rol del usuario
+                        const rol = FirebaseApp.state.currentUser?.rol || 'viewer';
+                        const navButtons = document.getElementById('nav-buttons');
+                        
+                        if (!navButtons) return;
+                        
+                        let buttons = '';
+                        
+                        if (rol === 'admin') {
+                            buttons = `
+                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('dashboard')">📊 Dashboard</button>
+                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('compras')">🛒 Compras</button>
+                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('inventario')">📦 Inventario</button>
+                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('corte')">✂️ Corte</button>
+                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('catalogos')">📚 Catálogos</button>
+                            `;
+                        } else if (rol === 'cortador') {
+                            buttons = `
+                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('corte')">✂️ Corte</button>
+                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('inventario')">📦 Inventario</button>
+                            `;
+                        } else if (rol === 'maquilero') {
+                            buttons = `
+                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('habilitados')">👷 Habilitados</button>
+                            `;
+                        } else {
+                            buttons = `
+                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('dashboard')">📊 Dashboard</button>
+                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('inventario')">📦 Inventario</button>
+                            `;
+                        }
+                        
+                        navButtons.innerHTML = buttons;
+                    },
+                    
+                    showSection(section) {
+                        // Implementar navegación de secciones
+                        console.log('Mostrando sección:', section);
+                    },
+                    
+                    updateKPIs() {
+                        // Actualizar KPIs del dashboard
+                        console.log('Actualizando KPIs');
+                    },
+                    
+                    toast(message, type = 'info') {
+                        // Implementar notificaciones toast
+                        console.log(`[${type}] ${message}`);
+                    }
+                },
+                
+                updateSyncStatus(status) {
+                    this.state.syncStatus = status;
+                    // Actualizar indicador visual de sincronización
+                    const indicators = document.querySelectorAll('.sync-indicator');
+                    indicators.forEach(indicator => {
+                        indicator.className = `sync-indicator ${status}`;
+                    });
+                }
+            };
+            
+            // Inicializar aplicación
+            FirebaseApp.init();
+            
+        }, 1000); // Dar tiempo a que Firebase se cargue
+    </script>
+</body>
+</html>
