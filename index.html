@@ -5,77 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Control Textil v3.0 - Firebase</title>
     
-    <!-- Firebase SDKs v10 -->
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            signOut,
-            onAuthStateChanged 
-        } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-        import { 
-            getFirestore, 
-            collection, 
-            doc, 
-            setDoc, 
-            getDoc, 
-            getDocs,
-            addDoc,
-            updateDoc,
-            deleteDoc,
-            query, 
-            where, 
-            orderBy, 
-            limit,
-            onSnapshot,
-            serverTimestamp 
-        } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-        
-        // TU CONFIGURACIÓN DE FIREBASE (reemplaza con tus datos)
-         const firebaseConfig = {
-    apiKey: "AIzaSyCCmkGV9dc0w-uOFfdK9eelUVSUU6t6yEM",
-    authDomain: "sistema-textil.firebaseapp.com",
-    projectId: "sistema-textil",
-    storageBucket: "sistema-textil.firebasestorage.app",
-    messagingSenderId: "142982120706",
-    appId: "1:142982120706:web:b99dd6368e9f846a622e1b"
-  };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        
-        // Make Firebase available globally
-        window.firebaseAuth = auth;
-        window.firebaseDB = db;
-        window.firebase = {
-            auth: {
-                signInWithEmailAndPassword,
-                signOut,
-                onAuthStateChanged
-            },
-            db: {
-                collection,
-                doc,
-                setDoc,
-                getDoc,
-                getDocs,
-                addDoc,
-                updateDoc,
-                deleteDoc,
-                query,
-                where,
-                orderBy,
-                limit,
-                onSnapshot,
-                serverTimestamp
-            }
-        };
-    </script>
-    
     <style>
         * {
             margin: 0;
@@ -105,7 +34,7 @@
             color: var(--dark);
         }
 
-        /* Login Screen Mejorado */
+        /* Login Screen */
         .login-container {
             display: flex;
             align-items: center;
@@ -139,112 +68,6 @@
 
         .login-subtitle {
             color: var(--gray);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--gray);
-            font-weight: 500;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            transition: all 0.3s;
-            font-size: 1rem;
-            background: white;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
-        }
-
-        .password-input-wrapper {
-            position: relative;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--gray);
-            cursor: pointer;
-            padding: 0.25rem;
-            font-size: 1.25rem;
-        }
-
-        .password-toggle:hover {
-            color: var(--primary);
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            width: 100%;
-            justify-content: center;
-        }
-
-        .btn-primary {
-            background: var(--gradient);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(107, 70, 193, 0.3);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            background: #FEE2E2;
-            color: #DC2626;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            margin-top: 1rem;
-            font-size: 0.875rem;
-            display: none;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
 
         /* Header con KPIs */
@@ -294,6 +117,62 @@
             font-weight: bold;
         }
 
+        /* Navbar */
+        .navbar {
+            background: white;
+            border-bottom: 2px solid var(--light);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: transparent;
+            color: var(--gray);
+            border: 2px solid transparent;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background: var(--light);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background: var(--gradient);
+            color: white;
+            border-color: transparent;
+        }
+
         .user-info {
             display: flex;
             align-items: center;
@@ -307,483 +186,2190 @@
             font-weight: 500;
         }
 
-        .sync-indicator {
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+
+        .section-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: var(--light);
+            color: var(--gray);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .category-tab:hover {
+            background: #e5e7eb;
+        }
+
+        .category-tab.active {
+            background: var(--dark);
+            color: white;
+        }
+
+        /* Forms */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-group .form-input {
+            flex: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem 1rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(107, 70, 193, 0.3);
+        }
+
+        .btn-dark {
+            background: var(--dark);
+            color: white;
+        }
+
+        .btn-success {
             background: var(--success);
             color: white;
-            border-radius: 0.5rem;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px dashed var(--gray);
+            color: var(--gray);
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 1.25rem;
+            min-width: auto;
+        }
+
+        .btn-small {
+            padding: 0.25rem 0.75rem;
             font-size: 0.875rem;
         }
 
-        .sync-indicator.offline {
-            background: var(--warning);
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 2rem 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
         }
 
-        .sync-indicator.syncing {
-            background: var(--secondary);
-        }
-
-        .sync-dot {
-            width: 8px;
-            height: 8px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
             background: white;
+        }
+
+        th {
+            background: #f9fafb;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray);
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Cards & Panels */
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--secondary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 90%;
+            width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease;
+        }
+
+        .modal-content.large {
+            width: 900px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Scanner Section */
+        .scanner-section {
+            background: #f9fafb;
+            border: 2px dashed #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .scanner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .scanner-row {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+            margin-bottom: 1rem;
+        }
+
+        .scanner-list {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .scanner-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Toasts/Alerts */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast.danger {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--secondary);
+        }
+
+        /* Dashboard widgets */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid var(--light);
+            border-top: 3px solid var(--primary);
             border-radius: 50%;
-            animation: pulse 1.5s infinite;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* El resto de los estilos permanecen iguales... */
-        /* (Copiamos todos los estilos del archivo original aquí) */
-        
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Utilities */
         .hidden {
             display: none !important;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mb-4 { margin-bottom: 2rem; }
+
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 2rem; }
+
+        .text-muted { color: var(--gray); }
+        .text-danger { color: var(--danger); }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+
+        /* Grid layouts */
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--light);
+            margin: 1.5rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .kpi-container {
+                flex-direction: column;
+            }
+
+            .nav-menu {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .toast-container {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen Mejorado -->
+    <!-- Login Screen -->
     <div id="login-screen" class="login-container">
         <div class="login-card">
             <div class="login-header">
                 <h1 class="login-title">✂️ Control Textil v3.0</h1>
                 <p class="login-subtitle">Sistema de Materia Prima y Corte</p>
-                <div style="margin-top: 0.5rem;">
-                    <span class="sync-indicator syncing">
-                        <span class="sync-dot"></span>
-                        <span>Versión en la Nube</span>
-                    </span>
-                </div>
             </div>
             
-            <form id="login-form" onsubmit="return false;">
-                <div class="form-group">
-                    <label class="form-label">Correo Electrónico</label>
-                    <input type="email" class="form-input" id="login-email" 
-                           placeholder="usuario@empresa.com" required>
+            <div class="form-group">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-input" id="login-email" placeholder="usuario@empresa.com">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password" class="form-input" id="login-password" placeholder="••••••••">
+            </div>
+            
+            <button class="btn btn-primary" style="width: 100%;" id="login-btn">
+                Iniciar Sesión
+            </button>
+            
+            <div id="login-error" style="margin-top: 1rem; color: red; text-align: center; font-size: 0.875rem;"></div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem;">
+                <p style="font-size: 0.875rem; color: #6b7280; text-align: center;">
+                    <strong>Usuario Demo:</strong><br>
+                    admin@textil.com / admin123<br>
+                    cortador@textil.com / cortador123
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="hidden">
+        <!-- Header KPIs -->
+        <div class="header-kpis">
+            <div class="kpi-container">
+                <div class="kpi-group">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Telas (m)</div>
+                        <div class="kpi-value" id="kpi-telas">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Habilitaciones</div>
+                        <div class="kpi-value" id="kpi-habilitaciones">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Piezas Cortadas</div>
+                        <div class="kpi-value" id="kpi-piezas">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Valorización</div>
+                        <div class="kpi-value" id="kpi-valor">$0</div>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Contraseña</label>
-                    <div class="password-input-wrapper">
-                        <input type="password" class="form-input" id="login-password" 
-                               placeholder="••••••••" required>
-                        <button type="button" class="password-toggle" 
-                                onclick="FirebaseApp.auth.togglePassword()">
-                            <span id="password-icon">👁️</span>
+                <div class="user-info">
+                    <span class="user-badge">
+                        <span id="user-name">Usuario</span>
+                        <span id="user-role" style="font-size: 0.75rem; color: #6b7280;">(Rol)</span>
+                    </span>
+                    <button class="btn btn-secondary btn-small" id="logout-btn">
+                        Salir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="logo">
+                    <span>✂️</span>
+                    <span>Sistema Control Textil</span>
+                </div>
+                <div class="nav-menu" id="nav-buttons">
+                    <!-- Buttons will be generated based on user role -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- Container -->
+        <div class="container">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section">
+                <div class="main-content">
+                    <div class="section-header">
+                        <h2 class="section-title">📊 Dashboard</h2>
+                        <button class="btn btn-ghost" onclick="App.dashboard.exportReport()">
+                            📥 Exportar Reporte
+                        </button>
+                    </div>
+                    
+                    <!-- Estadísticas principales -->
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Órdenes de Compra</div>
+                            <div class="stat-value" id="stat-compras">0</div>
+                            <div class="stat-change positive">Conectado a Firebase</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Cortes Realizados</div>
+                            <div class="stat-value" id="stat-cortes">0</div>
+                            <div class="stat-change positive">En tiempo real</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Piezas Cortadas</div>
+                            <div class="stat-value" id="stat-piezas">0</div>
+                            <div class="stat-change positive">Sincronizado</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Metros Consumidos</div>
+                            <div class="stat-value" id="stat-metros">0</div>
+                            <div class="stat-change positive">Base de datos</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Alertas de Stock -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h3 class="card-title">⚠️ Alertas de Stock Mínimo</h3>
+                        </div>
+                        <div id="alertas-stock">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compras Section -->
+            <div id="compras-section" class="section">
+                <div class="main-content">
+                    <div class="section-header">
+                        <h2 class="section-title">🛒 Órdenes de Compra</h2>
+                        <button class="btn btn-primary" onclick="App.compras.mostrarModalNuevaCompra()">
+                            ➕ Nueva Orden
+                        </button>
+                    </div>
+
+                    <div id="lista-ordenes-compra">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventario Section -->
+            <div id="inventario-section" class="section">
+                <div class="main-content">
+                    <div class="section-header">
+                        <h2 class="section-title">📦 Inventario de Materia Prima</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary" onclick="App.inventario.mostrarAgregarMaterial()">
+                                ➕ Agregar Material
+                            </button>
+                            <button class="btn btn-ghost" onclick="App.inventario.exportar()">
+                                📥 Exportar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="category-tabs">
+                        <button class="category-tab active" onclick="App.inventario.filtrarCategoria('TODOS')">Todos</button>
+                        <button class="category-tab" onclick="App.inventario.filtrarCategoria('TELA')">Tela</button>
+                        <button class="category-tab" onclick="App.inventario.filtrarCategoria('CIERRE')">Cierre</button>
+                        <button class="category-tab" onclick="App.inventario.filtrarCategoria('BOTON')">Botón</button>
+                        <button class="category-tab" onclick="App.inventario.filtrarCategoria('ETIQUETA')">Etiquetas</button>
+                        <button class="category-tab" onclick="App.inventario.filtrarCategoria('HILO')">Hilo</button>
+                        <button class="category-tab" onclick="App.inventario.filtrarCategoria('QUIMICO')">Químicos</button>
+                        <button class="category-tab" onclick="App.inventario.filtrarCategoria('OTRO')">Otro</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Material</th>
+                                    <th>Categoría</th>
+                                    <th>Color</th>
+                                    <th>Ancho</th>
+                                    <th class="text-right">Stock</th>
+                                    <th>Unidad</th>
+                                    <th class="text-right">Costo Prom</th>
+                                    <th class="text-right">Valor Total</th>
+                                    <th>Min Stock</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-inventario">
+                                <tr>
+                                    <td colspan="12" style="text-align: center;">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corte Section -->
+            <div id="corte-section" class="section">
+                <div class="main-content">
+                    <div class="section-header">
+                        <h2 class="section-title">✂️ Nueva Orden de Corte</h2>
+                        <div>
+                            <span style="margin-right: 1rem; color: #6B7280;">
+                                Próximo #: <strong id="proximo-numero-corte">001</strong>
+                            </span>
+                            <button class="btn btn-primary" onclick="App.corte.verLista()">
+                                📋 Ver Lista de Cortes
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Código de Corte</label>
+                            <div class="input-group">
+                                <input type="text" class="form-input" id="corte-codigo" 
+                                       placeholder="COR-202501-0001">
+                                <button class="btn btn-ghost" onclick="App.corte.generarCodigo()">
+                                    Auto
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cortador</label>
+                            <input type="text" class="form-input" id="corte-cortador" 
+                                   placeholder="ID del cortador">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-input" id="corte-fecha">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Producto</label>
+                            <input type="text" class="form-input" id="corte-producto">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Modelo</label>
+                            <input type="text" class="form-input" id="corte-modelo">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Largo del Trazo (m)</label>
+                            <input type="number" class="form-input" id="corte-trazo" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Ancho de Tela (m)</label>
+                            <input type="number" class="form-input" id="corte-ancho" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bultos</label>
+                            <input type="number" class="form-input" id="corte-bultos" onchange="App.corte.calcularTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dobleces por bulto</label>
+                            <input type="number" class="form-input" id="corte-dobleces" onchange="App.corte.calcularTotal()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Total de prendas</label>
+                            <input type="number" class="form-input" id="corte-total-prendas" readonly>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Tallas (CSV)</label>
+                            <input type="text" class="form-input" id="corte-tallas" 
+                                   placeholder="28, 30, 32, 34, 36...">
+                        </div>
+                    </div>
+
+                    <!-- Scanner Section para rollos -->
+                    <div class="scanner-section">
+                        <div class="scanner-header">
+                            <h3>🧵 Consumo de Rollos de Tela</h3>
+                        </div>
+                        
+                        <div class="scanner-row">
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Material</label>
+                                <select class="form-select" id="scanner-material">
+                                    <option value="">Seleccionar material...</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="width: 150px;">
+                                <label class="form-label">Metros a usar</label>
+                                <input type="number" class="form-input" id="scanner-metros" 
+                                       placeholder="0" step="0.1">
+                            </div>
+                            <div class="form-group" style="width: 150px;">
+                                <label class="form-label">Merma (m)</label>
+                                <input type="number" class="form-input" id="scanner-merma" 
+                                       placeholder="0" step="0.1" value="0">
+                            </div>
+                            <button class="btn btn-dark" onclick="App.corte.procesarConsumo()">
+                                Agregar Consumo
+                            </button>
+                        </div>
+                        
+                        <div class="scanner-list" id="materiales-consumidos">
+                            <div style="color: #9ca3af; text-align: center; padding: 1rem;">
+                                Sin materiales consumidos aún.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 2rem;">
+                        <button class="btn btn-primary" onclick="App.corte.guardar()">
+                            💾 Guardar Corte
                         </button>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn btn-primary" id="login-btn" 
-                        onclick="FirebaseApp.auth.login()">
-                    <span id="login-btn-text">Iniciar Sesión</span>
-                    <span id="login-spinner" class="loading-spinner hidden"></span>
-                </button>
-                
-                <div id="login-error" class="error-message">
-                    <!-- Los mensajes de error se mostrarán aquí -->
-                </div>
-            </form>
-            
-            <div style="margin-top: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem;">
-                <p style="font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
-                    <strong>Usuarios de Prueba:</strong>
-                </p>
-                <div style="font-size: 0.75rem; color: #6b7280; line-height: 1.5;">
-                    Admin: admin@empresa.com<br>
-                    Cortador: cortador@empresa.com<br>
-                    Maquilero: maquilero@empresa.com<br>
-                    <br>
-                    <em>Contraseñas configuradas por el administrador</em>
+            </div>
+
+            <!-- Movimientos Section -->
+            <div id="movimientos-section" class="section">
+                <div class="main-content">
+                    <div class="section-header">
+                        <h2 class="section-title">📋 Ledger de Movimientos</h2>
+                        <div>
+                            <button class="btn btn-ghost" onclick="App.movimientos.exportarCSV()">
+                                📥 Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Material</th>
+                                    <th class="text-right">Cantidad</th>
+                                    <th>Unidad</th>
+                                    <th>Ref. Corte</th>
+                                    <th>Usuario</th>
+                                    <th>Notas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-movimientos">
+                                <tr>
+                                    <td colspan="8" style="text-align: center;">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main App (copiamos todo el contenido del original) -->
-    <div id="main-app" class="hidden">
-        <!-- Aquí va todo el contenido del main-app del archivo original -->
+    <!-- Modals -->
+    <!-- Modal Agregar Material -->
+    <div id="modal-agregar-material" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Agregar Nuevo Material</h3>
+                <button class="modal-close" onclick="App.modal.cerrar('modal-agregar-material')">✖</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Código</label>
+                        <input type="text" class="form-input" id="nuevo-mat-codigo" placeholder="TEL-001">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-input" id="nuevo-mat-nombre" placeholder="Mezclilla Stretch">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-select" id="nuevo-mat-categoria">
+                            <option value="TELA">Tela</option>
+                            <option value="CIERRE">Cierre</option>
+                            <option value="BOTON">Botón</option>
+                            <option value="ETIQUETA">Etiqueta</option>
+                            <option value="HILO">Hilo</option>
+                            <option value="QUIMICO">Químico</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unidad</label>
+                        <select class="form-select" id="nuevo-mat-unidad">
+                            <option value="m">metros</option>
+                            <option value="pza">piezas</option>
+                            <option value="kg">kilos</option>
+                            <option value="lt">litros</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Color</label>
+                        <input type="text" class="form-input" id="nuevo-mat-color" placeholder="Azul índigo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ancho (m)</label>
+                        <input type="number" class="form-input" id="nuevo-mat-ancho" step="0.01" placeholder="1.5">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Stock Inicial</label>
+                        <input type="number" class="form-input" id="nuevo-mat-stock" step="0.01" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stock Mínimo</label>
+                        <input type="number" class="form-input" id="nuevo-mat-min-stock" placeholder="100">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Costo Unitario</label>
+                    <input type="number" class="form-input" id="nuevo-mat-costo" step="0.01" placeholder="120.00">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="App.modal.cerrar('modal-agregar-material')">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.inventario.guardarMaterial()">Guardar Material</button>
+            </div>
+        </div>
     </div>
 
-    <!-- JavaScript Principal con Firebase -->
+    <!-- Modal Lista Cortes -->
+    <div id="modal-lista-cortes" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 class="modal-title">Lista de Órdenes de Corte</h3>
+                <button class="modal-close" onclick="App.modal.cerrar('modal-lista-cortes')">✖</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th>Modelo</th>
+                                <th>Total Pzs</th>
+                                <th>Fecha</th>
+                                <th>Cortador</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-lista-cortes">
+                            <tr>
+                                <td colspan="7" style="text-align: center;">
+                                    <div class="spinner"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Firebase App Code -->
     <script type="module">
-        // Esperar a que Firebase esté listo
-        setTimeout(() => {
-            // Sistema con Firebase
-            window.FirebaseApp = {
-                // Estado global
-                state: {
-                    currentUser: null,
-                    syncStatus: 'offline',
-                    listeners: []
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, orderBy, limit, where, onSnapshot, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOmkGV9dc0w-uOFfdK9ee1UVSUU6t6yEM",
+            authDomain: "sistema-textil.firebaseapp.com",
+            projectId: "sistema-textil",
+            storageBucket: "sistema-textil.firebasestorage.app",
+            messagingSenderId: "142982120706",
+            appId: "1:142982120706:web:b99dd6368e9f846a622e1b"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Global App Object
+        window.App = {
+            // Estado global
+            state: {
+                currentUser: null,
+                materialesCache: [],
+                cortesCache: [],
+                movimientosCache: []
+            },
+            
+            // Utilidades
+            utils: {
+                uid(prefix = 'ID') {
+                    return prefix + '-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                 },
                 
-                // Inicialización
-                async init() {
-                    console.log('=== Sistema Control Textil v3.0 Firebase ===');
+                formatDate(timestamp) {
+                    if (!timestamp) return '';
+                    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                    return date.toLocaleDateString('es-ES') + ' ' + date.toLocaleTimeString('es-ES');
+                },
+                
+                showToast(message, type = 'info') {
+                    const container = document.getElementById('toast-container');
+                    const toast = document.createElement('div');
+                    toast.className = 'toast ' + type;
+                    toast.textContent = message;
+                    container.appendChild(toast);
                     
-                    // Verificar estado de autenticación
-                    window.firebase.auth.onAuthStateChanged(window.firebaseAuth, async (user) => {
-                        if (user) {
-                            await this.auth.handleUserLoggedIn(user);
-                        } else {
-                            this.auth.showLoginScreen();
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                },
+                
+                downloadJSON(filename, data) {
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                },
+                
+                downloadCSV(filename, data) {
+                    if (!data || data.length === 0) return;
+                    
+                    const headers = Object.keys(data[0]);
+                    const csvContent = [
+                        headers.join(','),
+                        ...data.map(row => 
+                            headers.map(header => {
+                                const value = row[header] || '';
+                                return typeof value === 'string' && value.includes(',') 
+                                    ? '"' + value + '"' 
+                                    : value;
+                            }).join(',')
+                        )
+                    ].join('\n');
+                    
+                    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            },
+            
+            // UI Functions
+            ui: {
+                showSection(sectionId) {
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    const section = document.getElementById(sectionId + '-section');
+                    if (section) {
+                        section.classList.add('active');
+                    }
+                    
+                    // Update nav buttons
+                    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+                    event.target?.classList.add('active');
+                    
+                    // Load section data
+                    if (sectionId === 'dashboard') App.dashboard.load();
+                    if (sectionId === 'inventario') App.inventario.load();
+                    if (sectionId === 'corte') App.corte.load();
+                    if (sectionId === 'movimientos') App.movimientos.load();
+                    if (sectionId === 'compras') App.compras.load();
+                },
+                
+                updateKPIs() {
+                    // KPIs básicos
+                    const telas = App.state.materialesCache
+                        .filter(m => m.categoria === 'TELA')
+                        .reduce((sum, m) => sum + (m.stock || 0), 0);
+                    
+                    const piezas = App.state.cortesCache.reduce((sum, c) => sum + (c.total_piezas || 0), 0);
+                    
+                    let valor = 0;
+                    App.state.materialesCache.forEach(m => {
+                        valor += (m.stock || 0) * (m.avgCost || 0);
+                    });
+                    
+                    document.getElementById('kpi-telas').textContent = Math.round(telas).toLocaleString() + 'm';
+                    document.getElementById('kpi-habilitaciones').textContent = App.state.cortesCache.length;
+                    document.getElementById('kpi-piezas').textContent = piezas.toLocaleString();
+                    document.getElementById('kpi-valor').textContent = '$' + valor.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                },
+                
+                updateUserInfo(user) {
+                    if (!user) return;
+                    
+                    document.getElementById('user-name').textContent = user.displayName || user.email;
+                    document.getElementById('user-role').textContent = '(' + (user.rol || 'usuario') + ')';
+                    
+                    // Update navigation based on role
+                    const navButtons = document.getElementById('nav-buttons');
+                    const rol = user.rol || 'viewer';
+                    
+                    let buttons = '';
+                    if (rol === 'admin') {
+                        buttons = `
+                            <button class="nav-btn active" onclick="App.ui.showSection('dashboard')">📊 Dashboard</button>
+                            <button class="nav-btn" onclick="App.ui.showSection('compras')">🛒 Compras</button>
+                            <button class="nav-btn" onclick="App.ui.showSection('inventario')">📦 Inventario</button>
+                            <button class="nav-btn" onclick="App.ui.showSection('corte')">✂️ Corte</button>
+                            <button class="nav-btn" onclick="App.ui.showSection('movimientos')">📋 Movimientos</button>
+                        `;
+                    } else if (rol === 'cortador') {
+                        buttons = `
+                            <button class="nav-btn active" onclick="App.ui.showSection('corte')">✂️ Corte</button>
+                            <button class="nav-btn" onclick="App.ui.showSection('inventario')">📦 Inventario</button>
+                        `;
+                    } else {
+                        buttons = `
+                            <button class="nav-btn active" onclick="App.ui.showSection('dashboard')">📊 Dashboard</button>
+                            <button class="nav-btn" onclick="App.ui.showSection('inventario')">📦 Inventario</button>
+                        `;
+                    }
+                    
+                    navButtons.innerHTML = buttons;
+                    
+                    // Show dashboard by default
+                    this.showSection('dashboard');
+                }
+            },
+            
+            // Auth module
+            auth: {
+                async login(email, password) {
+                    try {
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                        console.log('Login exitoso:', userCredential.user.email);
+                        return userCredential.user;
+                    } catch (error) {
+                        console.error('Error login:', error);
+                        throw error;
+                    }
+                },
+                
+                async logout() {
+                    try {
+                        await signOut(auth);
+                        console.log('Logout exitoso');
+                    } catch (error) {
+                        console.error('Error logout:', error);
+                    }
+                },
+                
+                async createUser(email, password, userData) {
+                    try {
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        
+                        // Crear documento del usuario en Firestore
+                        await setDoc(doc(db, 'users', userCredential.user.uid), {
+                            email: email,
+                            ...userData,
+                            createdAt: serverTimestamp()
+                        });
+                        
+                        return userCredential.user;
+                    } catch (error) {
+                        console.error('Error creating user:', error);
+                        throw error;
+                    }
+                }
+            },
+            
+            // Dashboard module
+            dashboard: {
+                async load() {
+                    try {
+                        // Cargar estadísticas básicas
+                        const comprasSnapshot = await getDocs(collection(db, 'ordenes_compra'));
+                        const cortesSnapshot = await getDocs(collection(db, 'ordenes_corte'));
+                        
+                        document.getElementById('stat-compras').textContent = comprasSnapshot.size;
+                        document.getElementById('stat-cortes').textContent = cortesSnapshot.size;
+                        
+                        const totalPiezas = App.state.cortesCache.reduce((sum, c) => sum + (c.total_piezas || 0), 0);
+                        const totalMetros = App.state.cortesCache.reduce((sum, c) => sum + (c.metros_totales || 0), 0);
+                        
+                        document.getElementById('stat-piezas').textContent = totalPiezas.toLocaleString();
+                        document.getElementById('stat-metros').textContent = Math.round(totalMetros) + 'm';
+                        
+                        // Cargar alertas de stock
+                        this.cargarAlertasStock();
+                        
+                    } catch (error) {
+                        console.error('Error loading dashboard:', error);
+                        App.utils.showToast('Error cargando dashboard', 'danger');
+                    }
+                },
+                
+                cargarAlertasStock() {
+                    const alertas = [];
+                    App.state.materialesCache.forEach(m => {
+                        const stock = m.stock || 0;
+                        const minStock = m.minStock || (m.categoria === 'TELA' ? 1000 : 6000);
+                        
+                        if (stock < minStock && stock > 0) {
+                            alertas.push(`
+                                <div class="badge badge-warning" style="margin: 0.25rem;">
+                                    ${m.nombre}: ${stock.toFixed(1)} ${m.unidad} (min: ${minStock})
+                                </div>
+                            `);
+                        } else if (stock === 0) {
+                            alertas.push(`
+                                <div class="badge badge-danger" style="margin: 0.25rem;">
+                                    ${m.nombre}: AGOTADO
+                                </div>
+                            `);
                         }
                     });
                     
-                    // Detectar conectividad
-                    window.addEventListener('online', () => this.updateSyncStatus('online'));
-                    window.addEventListener('offline', () => this.updateSyncStatus('offline'));
+                    document.getElementById('alertas-stock').innerHTML = alertas.length > 0
+                        ? alertas.join('')
+                        : '<p style="color: #10b981;">✓ Todos los materiales están sobre el mínimo</p>';
                 },
                 
-                // Módulo de Autenticación
-                auth: {
-                    togglePassword() {
-                        const input = document.getElementById('login-password');
-                        const icon = document.getElementById('password-icon');
-                        
-                        if (input.type === 'password') {
-                            input.type = 'text';
-                            icon.textContent = '🙈';
-                        } else {
-                            input.type = 'password';
-                            icon.textContent = '👁️';
-                        }
-                    },
+                async exportReport() {
+                    const data = {
+                        fecha: new Date().toISOString(),
+                        estadisticas: {
+                            materiales: App.state.materialesCache.length,
+                            cortes: App.state.cortesCache.length,
+                            piezas_cortadas: App.state.cortesCache.reduce((sum, c) => sum + c.total_piezas, 0)
+                        },
+                        inventario: App.state.materialesCache.map(m => ({
+                            codigo: m.codigo,
+                            nombre: m.nombre,
+                            stock: m.stock,
+                            unidad: m.unidad,
+                            valor_total: (m.stock || 0) * (m.avgCost || 0)
+                        }))
+                    };
                     
-                    async login() {
-                        const email = document.getElementById('login-email').value;
-                        const password = document.getElementById('login-password').value;
-                        const btn = document.getElementById('login-btn');
-                        const btnText = document.getElementById('login-btn-text');
-                        const spinner = document.getElementById('login-spinner');
-                        const errorDiv = document.getElementById('login-error');
+                    App.utils.downloadJSON('reporte-dashboard.json', data);
+                    App.utils.showToast('Reporte exportado', 'success');
+                }
+            },
+            
+            // Compras module
+            compras: {
+                async load() {
+                    try {
+                        const q = query(collection(db, 'ordenes_compra'), orderBy('fecha_orden', 'desc'));
+                        const snapshot = await getDocs(q);
                         
-                        if (!email || !password) {
-                            this.showError('Por favor complete todos los campos');
+                        const container = document.getElementById('lista-ordenes-compra');
+                        if (snapshot.empty) {
+                            container.innerHTML = '<div class="card"><p style="text-align: center; color: #9ca3af;">No hay órdenes de compra</p></div>';
                             return;
                         }
                         
-                        // Mostrar loading
-                        btn.disabled = true;
-                        btnText.textContent = 'Ingresando...';
-                        spinner.classList.remove('hidden');
-                        errorDiv.classList.remove('show');
+                        let html = '';
+                        snapshot.forEach((doc) => {
+                            const orden = { id: doc.id, ...doc.data() };
+                            html += this.renderOrdenCard(orden);
+                        });
                         
-                        try {
-                            const userCredential = await window.firebase.auth.signInWithEmailAndPassword(
-                                window.firebaseAuth, 
-                                email, 
-                                password
-                            );
-                            
-                            // El onAuthStateChanged manejará el resto
-                            
-                        } catch (error) {
-                            console.error('Error login:', error);
-                            let message = 'Error al iniciar sesión';
-                            
-                            switch(error.code) {
-                                case 'auth/invalid-email':
-                                    message = 'Correo electrónico inválido';
-                                    break;
-                                case 'auth/user-disabled':
-                                    message = 'Esta cuenta ha sido deshabilitada';
-                                    break;
-                                case 'auth/user-not-found':
-                                    message = 'Usuario no encontrado';
-                                    break;
-                                case 'auth/wrong-password':
-                                    message = 'Contraseña incorrecta';
-                                    break;
-                                case 'auth/invalid-credential':
-                                    message = 'Credenciales inválidas';
-                                    break;
-                                case 'auth/network-request-failed':
-                                    message = 'Error de conexión. Verifique su internet';
-                                    break;
-                                case 'auth/too-many-requests':
-                                    message = 'Demasiados intentos. Intente más tarde';
-                                    break;
-                            }
-                            
-                            this.showError(message);
-                        } finally {
-                            btn.disabled = false;
-                            btnText.textContent = 'Iniciar Sesión';
-                            spinner.classList.add('hidden');
-                        }
-                    },
-                    
-                    showError(message) {
-                        const errorDiv = document.getElementById('login-error');
-                        errorDiv.textContent = message;
-                        errorDiv.classList.add('show');
-                    },
-                    
-                    async handleUserLoggedIn(user) {
-                        try {
-                            // Obtener datos del usuario desde Firestore
-                            const userDoc = await window.firebase.db.getDoc(
-                                window.firebase.db.doc(window.firebaseDB, 'users', user.uid)
-                            );
-                            
-                            let userData = {
-                                uid: user.uid,
-                                email: user.email,
-                                nombre: user.displayName || user.email.split('@')[0],
-                                rol: 'viewer'
-                            };
-                            
-                            if (userDoc.exists()) {
-                                userData = { ...userData, ...userDoc.data() };
-                            } else {
-                                // Crear documento de usuario si no existe
-                                await window.firebase.db.setDoc(
-                                    window.firebase.db.doc(window.firebaseDB, 'users', user.uid),
-                                    {
-                                        email: user.email,
-                                        nombre: userData.nombre,
-                                        rol: userData.rol,
-                                        createdAt: window.firebase.db.serverTimestamp()
-                                    }
-                                );
-                            }
-                            
-                            FirebaseApp.state.currentUser = userData;
-                            
-                            // Ocultar login y mostrar app
-                            document.getElementById('login-screen').classList.add('hidden');
-                            document.getElementById('main-app').classList.remove('hidden');
-                            
-                            // Actualizar UI con datos del usuario
-                            if (document.getElementById('user-name')) {
-                                document.getElementById('user-name').textContent = userData.nombre;
-                            }
-                            if (document.getElementById('user-role')) {
-                                document.getElementById('user-role').textContent = `(${userData.rol})`;
-                            }
-                            
-                            // Cargar datos y configurar interfaz
-                            await FirebaseApp.data.loadFromFirebase();
-                            FirebaseApp.ui.configurarInterfaz();
-                            FirebaseApp.ui.showSection('dashboard');
-                            FirebaseApp.ui.toast(`Bienvenido ${userData.nombre}`, 'success');
-                            
-                        } catch (error) {
-                            console.error('Error getting user data:', error);
-                            FirebaseApp.ui.toast('Error al cargar datos del usuario', 'danger');
-                        }
-                    },
-                    
-                    showLoginScreen() {
-                        document.getElementById('login-screen').classList.remove('hidden');
-                        document.getElementById('main-app').classList.add('hidden');
-                    },
-                    
-                    async logout() {
-                        if (confirm('¿Desea cerrar sesión?')) {
-                            try {
-                                // Detener todos los listeners
-                                FirebaseApp.state.listeners.forEach(unsubscribe => unsubscribe());
-                                FirebaseApp.state.listeners = [];
-                                
-                                await window.firebase.auth.signOut(window.firebaseAuth);
-                                FirebaseApp.state.currentUser = null;
-                                
-                                FirebaseApp.ui.toast('Sesión cerrada', 'info');
-                            } catch (error) {
-                                console.error('Error logout:', error);
-                                FirebaseApp.ui.toast('Error al cerrar sesión', 'danger');
-                            }
-                        }
+                        container.innerHTML = html;
+                        
+                    } catch (error) {
+                        console.error('Error loading compras:', error);
+                        App.utils.showToast('Error cargando compras', 'danger');
                     }
                 },
                 
-                // Módulo de Datos con Firebase
-                data: {
-                    async loadFromFirebase() {
-                        try {
-                            FirebaseApp.updateSyncStatus('syncing');
-                            
-                            // Cargar colecciones principales
-                            const collections = [
-                                'materiales',
-                                'proveedores',
-                                'maquileros',
-                                'ordenes_compra',
-                                'ordenes_corte',
-                                'rollos',
-                                'movimientos'
-                            ];
-                            
-                            for (const collectionName of collections) {
-                                await this.loadCollection(collectionName);
-                            }
-                            
-                            // Configurar listeners en tiempo real
-                            this.setupRealtimeListeners();
-                            
-                            FirebaseApp.updateSyncStatus('online');
-                            FirebaseApp.ui.updateKPIs();
-                            
-                        } catch (error) {
-                            console.error('Error loading from Firebase:', error);
-                            FirebaseApp.updateSyncStatus('offline');
-                            FirebaseApp.ui.toast('Error al cargar datos', 'danger');
-                        }
-                    },
+                renderOrdenCard(orden) {
+                    const totalItems = orden.productos?.reduce((sum, p) => sum + p.cantidad_pedida, 0) || 0;
+                    const totalValor = orden.productos?.reduce((sum, p) => sum + (p.cantidad_pedida * p.precio), 0) || 0;
                     
-                    async loadCollection(collectionName) {
-                        try {
-                            const querySnapshot = await window.firebase.db.getDocs(
-                                window.firebase.db.collection(window.firebaseDB, collectionName)
-                            );
-                            
-                            const data = [];
-                            querySnapshot.forEach(doc => {
-                                data.push({ id: doc.id, ...doc.data() });
-                            });
-                            
-                            // Guardar en memoria local
-                            if (!window.AppData) window.AppData = {};
-                            window.AppData[collectionName] = data;
-                            
-                        } catch (error) {
-                            console.error(`Error loading ${collectionName}:`, error);
-                        }
-                    },
-                    
-                    setupRealtimeListeners() {
-                        // Listener para cambios en inventario
-                        const unsubscribeInventario = window.firebase.db.onSnapshot(
-                            window.firebase.db.collection(window.firebaseDB, 'materiales'),
-                            (snapshot) => {
-                                snapshot.docChanges().forEach((change) => {
-                                    if (change.type === 'modified') {
-                                        FirebaseApp.ui.updateKPIs();
-                                    }
-                                });
-                            }
-                        );
-                        
-                        FirebaseApp.state.listeners.push(unsubscribeInventario);
-                    },
-                    
-                    async saveToFirebase(collection, data, docId = null) {
-                        try {
-                            FirebaseApp.updateSyncStatus('syncing');
-                            
-                            if (docId) {
-                                // Actualizar documento existente
-                                await window.firebase.db.setDoc(
-                                    window.firebase.db.doc(window.firebaseDB, collection, docId),
-                                    {
-                                        ...data,
-                                        updatedAt: window.firebase.db.serverTimestamp(),
-                                        updatedBy: FirebaseApp.state.currentUser.uid
-                                    },
-                                    { merge: true }
-                                );
-                            } else {
-                                // Crear nuevo documento
-                                const docRef = await window.firebase.db.addDoc(
-                                    window.firebase.db.collection(window.firebaseDB, collection),
-                                    {
-                                        ...data,
-                                        createdAt: window.firebase.db.serverTimestamp(),
-                                        createdBy: FirebaseApp.state.currentUser.uid
-                                    }
-                                );
-                                data.id = docRef.id;
-                            }
-                            
-                            FirebaseApp.updateSyncStatus('online');
-                            return data;
-                            
-                        } catch (error) {
-                            console.error('Error saving to Firebase:', error);
-                            FirebaseApp.updateSyncStatus('offline');
-                            throw error;
-                        }
-                    }
+                    return `
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>${orden.folio || orden.id}</h3>
+                                    <span class="badge badge-${orden.recibido ? 'success' : 'warning'}">
+                                        ${orden.recibido ? 'RECIBIDO' : 'PENDIENTE'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <strong>$${totalValor.toFixed(2)}</strong>
+                                </div>
+                            </div>
+                            <p><strong>Proveedor:</strong> ${orden.proveedor}</p>
+                            <p><strong>Items:</strong> ${totalItems} | <strong>Fecha:</strong> ${orden.fecha_orden}</p>
+                        </div>
+                    `;
                 },
                 
-                // Módulo UI
-                ui: {
-                    configurarInterfaz() {
-                        // Configurar menú según rol del usuario
-                        const rol = FirebaseApp.state.currentUser?.rol || 'viewer';
-                        const navButtons = document.getElementById('nav-buttons');
-                        
-                        if (!navButtons) return;
-                        
-                        let buttons = '';
-                        
-                        if (rol === 'admin') {
-                            buttons = `
-                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('dashboard')">📊 Dashboard</button>
-                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('compras')">🛒 Compras</button>
-                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('inventario')">📦 Inventario</button>
-                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('corte')">✂️ Corte</button>
-                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('catalogos')">📚 Catálogos</button>
-                            `;
-                        } else if (rol === 'cortador') {
-                            buttons = `
-                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('corte')">✂️ Corte</button>
-                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('inventario')">📦 Inventario</button>
-                            `;
-                        } else if (rol === 'maquilero') {
-                            buttons = `
-                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('habilitados')">👷 Habilitados</button>
-                            `;
-                        } else {
-                            buttons = `
-                                <button class="nav-btn active" onclick="FirebaseApp.ui.showSection('dashboard')">📊 Dashboard</button>
-                                <button class="nav-btn" onclick="FirebaseApp.ui.showSection('inventario')">📦 Inventario</button>
-                            `;
-                        }
-                        
-                        navButtons.innerHTML = buttons;
-                    },
-                    
-                    showSection(section) {
-                        // Implementar navegación de secciones
-                        console.log('Mostrando sección:', section);
-                    },
-                    
-                    updateKPIs() {
-                        // Actualizar KPIs del dashboard
-                        console.log('Actualizando KPIs');
-                    },
-                    
-                    toast(message, type = 'info') {
-                        // Implementar notificaciones toast
-                        console.log(`[${type}] ${message}`);
-                    }
-                },
-                
-                updateSyncStatus(status) {
-                    this.state.syncStatus = status;
-                    // Actualizar indicador visual de sincronización
-                    const indicators = document.querySelectorAll('.sync-indicator');
-                    indicators.forEach(indicator => {
-                        indicator.className = `sync-indicator ${status}`;
-                    });
+                mostrarModalNuevaCompra() {
+                    App.utils.showToast('Modal de nueva compra en desarrollo', 'info');
                 }
-            };
+            },
             
-            // Inicializar aplicación
-            FirebaseApp.init();
+            // Inventario module
+            inventario: {
+                categoriaActual: 'TODOS',
+                
+                async load() {
+                    await this.cargarMateriales();
+                    this.cargarTabla();
+                },
+                
+                async cargarMateriales() {
+                    try {
+                        const snapshot = await getDocs(collection(db, 'materiales'));
+                        App.state.materialesCache = [];
+                        
+                        snapshot.forEach((doc) => {
+                            App.state.materialesCache.push({ id: doc.id, ...doc.data() });
+                        });
+                        
+                        // Si no hay materiales, crear datos de ejemplo
+                        if (App.state.materialesCache.length === 0) {
+                            await this.crearDatosEjemplo();
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error loading materiales:', error);
+                    }
+                },
+                
+                async crearDatosEjemplo() {
+                    const materiales = [
+                        {
+                            codigo: 'TEL-001',
+                            nombre: 'Mezclilla Stretch 12oz',
+                            categoria: 'TELA',
+                            unidad: 'm',
+                            color: 'Azul índigo',
+                            ancho: 1.5,
+                            minStock: 1000,
+                            stock: 2500,
+                            avgCost: 120
+                        },
+                        {
+                            codigo: 'CIE-001',
+                            nombre: 'Cierre YKK #5 Metal',
+                            categoria: 'CIERRE',
+                            unidad: 'pza',
+                            minStock: 6000,
+                            stock: 10000,
+                            avgCost: 3.5
+                        },
+                        {
+                            codigo: 'BOT-001',
+                            nombre: 'Botón Cobre Antiguo 17mm',
+                            categoria: 'BOTON',
+                            unidad: 'pza',
+                            minStock: 6000,
+                            stock: 8000,
+                            avgCost: 1.2
+                        },
+                        {
+                            codigo: 'ETI-001',
+                            nombre: 'Etiqueta Marca Principal',
+                            categoria: 'ETIQUETA',
+                            unidad: 'pza',
+                            minStock: 6000,
+                            stock: 5000,
+                            avgCost: 0.8
+                        },
+                        {
+                            codigo: 'HIL-001',
+                            nombre: 'Hilo Poliéster 40/2 Negro',
+                            categoria: 'HILO',
+                            unidad: 'm',
+                            minStock: 10000,
+                            stock: 25000,
+                            avgCost: 0.02
+                        }
+                    ];
+                    
+                    for (const mat of materiales) {
+                        try {
+                            await addDoc(collection(db, 'materiales'), {
+                                ...mat,
+                                createdAt: serverTimestamp(),
+                                createdBy: App.state.currentUser.uid
+                            });
+                        } catch (error) {
+                            console.error('Error creating sample material:', error);
+                        }
+                    }
+                    
+                    await this.cargarMateriales(); // Recargar
+                },
+                
+                filtrarCategoria(categoria) {
+                    this.categoriaActual = categoria;
+                    
+                    document.querySelectorAll('.category-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    if (event && event.target) {
+                        event.target.classList.add('active');
+                    }
+                    
+                    this.cargarTabla();
+                },
+                
+                cargarTabla() {
+                    const tbody = document.getElementById('tbody-inventario');
+                    if (!tbody) return;
+                    
+                    let materiales = App.state.materialesCache;
+                    if (this.categoriaActual !== 'TODOS') {
+                        materiales = materiales.filter(m => m.categoria === this.categoriaActual);
+                    }
+                    
+                    if (materiales.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; color: #9ca3af;">No hay materiales en esta categoría</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = materiales.map(m => {
+                        const stock = m.stock || 0;
+                        const minStock = m.minStock || (m.categoria === 'TELA' ? 1000 : 6000);
+                        const valorTotal = stock * (m.avgCost || 0);
+                        
+                        let estadoBadge = '';
+                        if (stock === 0) {
+                            estadoBadge = '<span class="badge badge-danger">Agotado</span>';
+                        } else if (stock < minStock) {
+                            estadoBadge = '<span class="badge badge-warning">Bajo</span>';
+                        } else {
+                            estadoBadge = '<span class="badge badge-success">OK</span>';
+                        }
+                        
+                        return `
+                            <tr>
+                                <td><strong>${m.codigo}</strong></td>
+                                <td>${m.nombre}</td>
+                                <td>${m.categoria}</td>
+                                <td>${m.color || '-'}</td>
+                                <td>${m.ancho ? m.ancho + 'm' : '-'}</td>
+                                <td class="text-right"><strong>${stock.toFixed(2)}</strong></td>
+                                <td>${m.unidad}</td>
+                                <td class="text-right">${(m.avgCost || 0).toFixed(2)}</td>
+                                <td class="text-right">${valorTotal.toFixed(2)}</td>
+                                <td>${minStock}</td>
+                                <td>${estadoBadge}</td>
+                                <td>
+                                    <button class="btn btn-ghost btn-small" onclick="App.inventario.ajustar('${m.id}')">
+                                        Ajustar
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    App.ui.updateKPIs();
+                },
+                
+                mostrarAgregarMaterial() {
+                    App.modal.abrir('modal-agregar-material');
+                },
+                
+                async guardarMaterial() {
+                    const codigo = document.getElementById('nuevo-mat-codigo').value;
+                    const nombre = document.getElementById('nuevo-mat-nombre').value;
+                    
+                    if (!codigo || !nombre) {
+                        App.utils.showToast('Complete código y nombre', 'warning');
+                        return;
+                    }
+                    
+                    const material = {
+                        codigo: codigo,
+                        nombre: nombre,
+                        categoria: document.getElementById('nuevo-mat-categoria').value,
+                        unidad: document.getElementById('nuevo-mat-unidad').value,
+                        color: document.getElementById('nuevo-mat-color').value,
+                        ancho: parseFloat(document.getElementById('nuevo-mat-ancho').value) || null,
+                        stock: parseFloat(document.getElementById('nuevo-mat-stock').value) || 0,
+                        minStock: parseInt(document.getElementById('nuevo-mat-min-stock').value) || 0,
+                        avgCost: parseFloat(document.getElementById('nuevo-mat-costo').value) || 0,
+                        createdAt: serverTimestamp(),
+                        createdBy: App.state.currentUser.uid
+                    };
+                    
+                    try {
+                        await addDoc(collection(db, 'materiales'), material);
+                        
+                        App.utils.showToast('Material guardado exitosamente', 'success');
+                        App.modal.cerrar('modal-agregar-material');
+                        
+                        // Limpiar formulario
+                        document.getElementById('nuevo-mat-codigo').value = '';
+                        document.getElementById('nuevo-mat-nombre').value = '';
+                        document.getElementById('nuevo-mat-color').value = '';
+                        document.getElementById('nuevo-mat-ancho').value = '';
+                        document.getElementById('nuevo-mat-stock').value = '';
+                        document.getElementById('nuevo-mat-min-stock').value = '';
+                        document.getElementById('nuevo-mat-costo').value = '';
+                        
+                        // Recargar inventario
+                        await this.cargarMateriales();
+                        this.cargarTabla();
+                        
+                    } catch (error) {
+                        console.error('Error saving material:', error);
+                        App.utils.showToast('Error al guardar material', 'danger');
+                    }
+                },
+                
+                async ajustar(materialId) {
+                    const material = App.state.materialesCache.find(m => m.id === materialId);
+                    if (!material) return;
+                    
+                    const nuevoStock = parseFloat(prompt(`Ajustar stock de ${material.nombre}\n\nStock actual: ${material.stock || 0} ${material.unidad}\n\nNuevo stock:`));
+                    
+                    if (isNaN(nuevoStock) || nuevoStock < 0) {
+                        App.utils.showToast('Cantidad no válida', 'danger');
+                        return;
+                    }
+                    
+                    try {
+                        await updateDoc(doc(db, 'materiales', materialId), {
+                            stock: nuevoStock,
+                            lastUpdated: serverTimestamp(),
+                            updatedBy: App.state.currentUser.uid
+                        });
+                        
+                        // Registrar movimiento
+                        const diferencia = nuevoStock - (material.stock || 0);
+                        await App.movimientos.agregar({
+                            type: 'ajuste_admin',
+                            materialId: materialId,
+                            qty: diferencia,
+                            unidad: material.unidad,
+                            notes: 'Ajuste manual de inventario'
+                        });
+                        
+                        App.utils.showToast('Stock ajustado', 'success');
+                        
+                        // Actualizar cache local
+                        material.stock = nuevoStock;
+                        this.cargarTabla();
+                        
+                    } catch (error) {
+                        console.error('Error adjusting stock:', error);
+                        App.utils.showToast('Error al ajustar stock', 'danger');
+                    }
+                },
+                
+                exportar() {
+                    const data = App.state.materialesCache.map(m => ({
+                        codigo: m.codigo,
+                        nombre: m.nombre,
+                        categoria: m.categoria,
+                        stock: m.stock,
+                        unidad: m.unidad,
+                        costo: m.avgCost,
+                        valor_total: (m.stock || 0) * (m.avgCost || 0)
+                    }));
+                    
+                    App.utils.downloadCSV('inventario.csv', data);
+                    App.utils.showToast('Inventario exportado', 'success');
+                }
+            },
             
-        }, 1000); // Dar tiempo a que Firebase se cargue
+            // Corte module
+            corte: {
+                consumosActuales: [],
+                
+                async load() {
+                    document.getElementById('corte-fecha').value = new Date().toISOString().split('T')[0];
+                    await this.cargarMateriales();
+                    await this.actualizarNumeroCorte();
+                    this.consumosActuales = [];
+                    this.actualizarListaConsumos();
+                },
+                
+                async cargarMateriales() {
+                    const select = document.getElementById('scanner-material');
+                    if (!select) return;
+                    
+                    const materiales = App.state.materialesCache.filter(m => m.categoria === 'TELA');
+                    select.innerHTML = '<option value="">Seleccionar material...</option>' + 
+                        materiales.map(m => `<option value="${m.id}">${m.codigo} - ${m.nombre} (${m.stock || 0}m)</option>`).join('');
+                },
+                
+                async actualizarNumeroCorte() {
+                    try {
+                        const q = query(collection(db, 'ordenes_corte'), orderBy('numero_corte', 'desc'), limit(1));
+                        const snapshot = await getDocs(q);
+                        
+                        let ultimoNumero = 0;
+                        if (!snapshot.empty) {
+                            ultimoNumero = snapshot.docs[0].data().numero_corte || 0;
+                        }
+                        
+                        const siguiente = String(ultimoNumero + 1).padStart(4, '0');
+                        document.getElementById('proximo-numero-corte').textContent = siguiente;
+                        
+                    } catch (error) {
+                        console.error('Error getting last corte number:', error);
+                    }
+                },
+                
+                generarCodigo() {
+                    const fecha = new Date();
+                    const año = fecha.getFullYear();
+                    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                    const numero = document.getElementById('proximo-numero-corte').textContent;
+                    
+                    document.getElementById('corte-codigo').value = 'COR-' + año + mes + '-' + numero;
+                },
+                
+                calcularTotal() {
+                    const bultos = parseInt(document.getElementById('corte-bultos').value) || 0;
+                    const dobleces = parseInt(document.getElementById('corte-dobleces').value) || 0;
+                    const total = bultos * dobleces;
+                    document.getElementById('corte-total-prendas').value = total;
+                },
+                
+                procesarConsumo() {
+                    const materialId = document.getElementById('scanner-material').value;
+                    const metros = parseFloat(document.getElementById('scanner-metros').value);
+                    const merma = parseFloat(document.getElementById('scanner-merma').value) || 0;
+                    
+                    if (!materialId || !metros || metros <= 0) {
+                        App.utils.showToast('Seleccione material y cantidad válida', 'warning');
+                        return;
+                    }
+                    
+                    const material = App.state.materialesCache.find(m => m.id === materialId);
+                    if (!material) {
+                        App.utils.showToast('Material no encontrado', 'danger');
+                        return;
+                    }
+                    
+                    if (metros > material.stock) {
+                        App.utils.showToast(`Solo hay ${material.stock}m disponibles`, 'warning');
+                        return;
+                    }
+                    
+                    this.consumosActuales.push({
+                        materialId: materialId,
+                        material: material.nombre,
+                        metros_usados: metros,
+                        merma: merma,
+                        stock_disponible: material.stock
+                    });
+                    
+                    this.actualizarListaConsumos();
+                    
+                    // Limpiar campos
+                    document.getElementById('scanner-metros').value = '';
+                    document.getElementById('scanner-merma').value = '0';
+                    
+                    App.utils.showToast('Consumo agregado', 'success');
+                },
+                
+                actualizarListaConsumos() {
+                    const container = document.getElementById('materiales-consumidos');
+                    
+                    if (this.consumosActuales.length === 0) {
+                        container.innerHTML = '<div style="color: #9ca3af; text-align: center; padding: 1rem;">Sin materiales consumidos aún.</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = this.consumosActuales.map((consumo, index) => `
+                        <div class="scanner-item">
+                            <span>
+                                <strong>${consumo.material}</strong>
+                            </span>
+                            <span>
+                                ${consumo.metros_usados}m ${consumo.merma > 0 ? '| Merma: ' + consumo.merma + 'm' : ''}
+                            </span>
+                            <button class="btn btn-danger btn-small" onclick="App.corte.quitarConsumo(${index})">
+                                Quitar
+                            </button>
+                        </div>
+                    `).join('');
+                },
+                
+                quitarConsumo(index) {
+                    this.consumosActuales.splice(index, 1);
+                    this.actualizarListaConsumos();
+                },
+                
+                async guardar() {
+                    const codigo = document.getElementById('corte-codigo').value;
+                    const producto = document.getElementById('corte-producto').value;
+                    const modelo = document.getElementById('corte-modelo').value;
+                    
+                    if (!codigo || !producto || !modelo) {
+                        App.utils.showToast('Complete los campos obligatorios', 'warning');
+                        return;
+                    }
+                    
+                    if (this.consumosActuales.length === 0) {
+                        App.utils.showToast('Debe agregar al menos un consumo de material', 'warning');
+                        return;
+                    }
+                    
+                    try {
+                        const numeroCorte = parseInt(document.getElementById('proximo-numero-corte').textContent);
+                        
+                        const corte = {
+                            numero_corte: numeroCorte,
+                            codigo_corte: codigo,
+                            producto: producto,
+                            modelo: modelo,
+                            trazo: parseFloat(document.getElementById('corte-trazo').value) || 0,
+                            ancho: parseFloat(document.getElementById('corte-ancho').value) || 0,
+                            bultos: parseInt(document.getElementById('corte-bultos').value) || 0,
+                            dobleces: parseInt(document.getElementById('corte-dobleces').value) || 0,
+                            total_piezas: parseInt(document.getElementById('corte-total-prendas').value) || 0,
+                            tallas: document.getElementById('corte-tallas').value,
+                            materiales_consumidos: this.consumosActuales,
+                            metros_totales: this.consumosActuales.reduce((sum, c) => sum + c.metros_usados, 0),
+                            fecha: document.getElementById('corte-fecha').value,
+                            cortador: document.getElementById('corte-cortador').value,
+                            createdAt: serverTimestamp(),
+                            createdBy: App.state.currentUser.uid
+                        };
+                        
+                        // Guardar orden de corte
+                        const docRef = await addDoc(collection(db, 'ordenes_corte'), corte);
+                        
+                        // Actualizar inventario y registrar movimientos
+                        for (const consumo of this.consumosActuales) {
+                            const material = App.state.materialesCache.find(m => m.id === consumo.materialId);
+                            if (material) {
+                                const nuevoStock = material.stock - consumo.metros_usados;
+                                
+                                await updateDoc(doc(db, 'materiales', consumo.materialId), {
+                                    stock: nuevoStock,
+                                    lastUpdated: serverTimestamp()
+                                });
+                                
+                                // Registrar movimiento
+                                await App.movimientos.agregar({
+                                    type: 'consumo_corte',
+                                    materialId: consumo.materialId,
+                                    qty: -consumo.metros_usados,
+                                    unidad: 'm',
+                                    refCorte: codigo,
+                                    merma: consumo.merma,
+                                    notes: `Corte ${codigo} - ${producto}`
+                                });
+                                
+                                // Actualizar cache local
+                                material.stock = nuevoStock;
+                            }
+                        }
+                        
+                        App.utils.showToast(`✅ Orden de corte #${numeroCorte} guardada`, 'success');
+                        
+                        // Limpiar formulario
+                        this.limpiarFormulario();
+                        
+                        // Recargar datos
+                        await this.cargarMateriales();
+                        App.inventario.cargarTabla();
+                        
+                    } catch (error) {
+                        console.error('Error saving corte:', error);
+                        App.utils.showToast('Error al guardar corte', 'danger');
+                    }
+                },
+                
+                limpiarFormulario() {
+                    document.getElementById('corte-codigo').value = '';
+                    document.getElementById('corte-producto').value = '';
+                    document.getElementById('corte-modelo').value = '';
+                    document.getElementById('corte-trazo').value = '';
+                    document.getElementById('corte-ancho').value = '';
+                    document.getElementById('corte-bultos').value = '';
+                    document.getElementById('corte-dobleces').value = '';
+                    document.getElementById('corte-total-prendas').value = '';
+                    document.getElementById('corte-tallas').value = '';
+                    document.getElementById('corte-cortador').value = '';
+                    
+                    this.consumosActuales = [];
+                    this.actualizarListaConsumos();
+                    this.actualizarNumeroCorte();
+                },
+                
+                async verLista() {
+                    try {
+                        const q = query(collection(db, 'ordenes_corte'), orderBy('numero_corte', 'desc'));
+                        const snapshot = await getDocs(q);
+                        
+                        const tbody = document.getElementById('tbody-lista-cortes');
+                        if (snapshot.empty) {
+                            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #9ca3af;">No hay órdenes de corte</td></tr>';
+                        } else {
+                            tbody.innerHTML = '';
+                            snapshot.forEach((doc) => {
+                                const corte = doc.data();
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td><strong>#${corte.numero_corte}</strong></td>
+                                    <td style="font-size: 0.75rem;">${corte.codigo_corte}</td>
+                                    <td>${corte.producto}</td>
+                                    <td>${corte.modelo}</td>
+                                    <td><strong>${corte.total_piezas}</strong></td>
+                                    <td>${corte.fecha}</td>
+                                    <td>${corte.cortador || '-'}</td>
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        }
+                        
+                        App.modal.abrir('modal-lista-cortes');
+                        
+                    } catch (error) {
+                        console.error('Error loading cortes list:', error);
+                        App.utils.showToast('Error cargando lista de cortes', 'danger');
+                    }
+                }
+            },
+            
+            // Movimientos module
+            movimientos: {
+                async agregar(movimiento) {
+                    try {
+                        const mov = {
+                            when: serverTimestamp(),
+                            usuario: App.state.currentUser.displayName || App.state.currentUser.email,
+                            ...movimiento
+                        };
+                        
+                        await addDoc(collection(db, 'movimientos'), mov);
+                        
+                    } catch (error) {
+                        console.error('Error adding movement:', error);
+                    }
+                },
+                
+                async load() {
+                    try {
+                        const q = query(collection(db, 'movimientos'), orderBy('when', 'desc'), limit(100));
+                        const snapshot = await getDocs(q);
+                        
+                        const tbody = document.getElementById('tbody-movimientos');
+                        if (snapshot.empty) {
+                            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #9ca3af;">Sin movimientos registrados</td></tr>';
+                            return;
+                        }
+                        
+                        tbody.innerHTML = '';
+                        snapshot.forEach((doc) => {
+                            const mov = doc.data();
+                            const material = App.state.materialesCache.find(m => m.id === mov.materialId);
+                            
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${App.utils.formatDate(mov.when)}</td>
+                                <td>${mov.type}</td>
+                                <td>${material?.nombre || 'N/A'}</td>
+                                <td class="text-right">${mov.qty > 0 ? '+' : ''}${mov.qty}</td>
+                                <td>${mov.unidad || '-'}</td>
+                                <td>${mov.refCorte || '-'}</td>
+                                <td>${mov.usuario}</td>
+                                <td>${mov.notes || '-'}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                        
+                    } catch (error) {
+                        console.error('Error loading movements:', error);
+                        App.utils.showToast('Error cargando movimientos', 'danger');
+                    }
+                },
+                
+                async exportarCSV() {
+                    try {
+                        const q = query(collection(db, 'movimientos'), orderBy('when', 'desc'));
+                        const snapshot = await getDocs(q);
+                        
+                        const data = [];
+                        snapshot.forEach((doc) => {
+                            const mov = doc.data();
+                            const material = App.state.materialesCache.find(m => m.id === mov.materialId);
+                            data.push({
+                                fecha: App.utils.formatDate(mov.when),
+                                tipo: mov.type,
+                                material: material?.nombre || 'N/A',
+                                cantidad: mov.qty,
+                                unidad: mov.unidad || '',
+                                ref_corte: mov.refCorte || '',
+                                usuario: mov.usuario,
+                                notas: mov.notes || ''
+                            });
+                        });
+                        
+                        App.utils.downloadCSV('movimientos.csv', data);
+                        App.utils.showToast('Movimientos exportados', 'success');
+                        
+                    } catch (error) {
+                        console.error('Error exporting movements:', error);
+                        App.utils.showToast('Error exportando movimientos', 'danger');
+                    }
+                }
+            },
+            
+            // Modal module
+            modal: {
+                abrir(id) {
+                    const modal = document.getElementById(id);
+                    if (modal) {
+                        modal.classList.add('show');
+                    }
+                },
+                
+                cerrar(id) {
+                    const modal = document.getElementById(id);
+                    if (modal) {
+                        modal.classList.remove('show');
+                    }
+                }
+            }
+        };
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set current date
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                if (!input.value) input.value = today;
+            });
+        });
+        
+        // Login functionality
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            if (!email || !password) {
+                errorDiv.textContent = 'Por favor complete todos los campos';
+                return;
+            }
+            
+            try {
+                await App.auth.login(email, password);
+                errorDiv.textContent = '';
+            } catch (error) {
+                console.error('Error login:', error);
+                let message = 'Error al iniciar sesión';
+                
+                switch(error.code) {
+                    case 'auth/invalid-email':
+                        message = 'Correo electrónico inválido';
+                        break;
+                    case 'auth/user-not-found':
+                        message = 'Usuario no encontrado';
+                        break;
+                    case 'auth/wrong-password':
+                        message = 'Contraseña incorrecta';
+                        break;
+                    case 'auth/invalid-credential':
+                        message = 'Credenciales inválidas';
+                        break;
+                }
+                
+                errorDiv.textContent = message;
+            }
+        });
+        
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await App.auth.logout();
+        });
+        
+        // Auth State Observer
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log('Usuario autenticado:', user.email);
+                
+                try {
+                    // Get user data from Firestore
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    let userData = {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.email.split('@')[0],
+                        rol: 'admin' // Default role
+                    };
+                    
+                    if (userDoc.exists()) {
+                        userData = { ...userData, ...userDoc.data() };
+                    } else {
+                        // Create user document if doesn't exist
+                        await setDoc(doc(db, 'users', user.uid), {
+                            email: user.email,
+                            displayName: userData.displayName,
+                            rol: userData.rol,
+                            createdAt: serverTimestamp()
+                        });
+                    }
+                    
+                    App.state.currentUser = userData;
+                    
+                    // Show main app
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('main-app').classList.remove('hidden');
+                    
+                    App.ui.updateUserInfo(userData);
+                    App.utils.showToast('Bienvenido ' + userData.displayName, 'success');
+                    
+                    // Load initial data
+                    await App.inventario.cargarMateriales();
+                    App.ui.updateKPIs();
+                    
+                    // Create demo users if they don't exist
+                    await createDemoUsers();
+                    
+                } catch (error) {
+                    console.error('Error getting user data:', error);
+                }
+            } else {
+                console.log('Usuario no autenticado');
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+                App.state.currentUser = null;
+            }
+        });
+        
+        // Create demo users (only if they don't exist)
+        async function createDemoUsers() {
+            const demoUsers = [
+                { email: 'admin@textil.com', password: 'admin123', rol: 'admin', displayName: 'Administrador' },
+                { email: 'cortador@textil.com', password: 'cortador123', rol: 'cortador', displayName: 'Cortador' }
+            ];
+            
+            for (const demoUser of demoUsers) {
+                try {
+                    // Check if user already exists in Firestore by email
+                    const q = query(collection(db, 'users'), where('email', '==', demoUser.email));
+                    const snapshot = await getDocs(q);
+                    
+                    if (snapshot.empty) {
+                        // User doesn't exist, create it
+                        try {
+                            await App.auth.createUser(demoUser.email, demoUser.password, {
+                                displayName: demoUser.displayName,
+                                rol: demoUser.rol
+                            });
+                            console.log('Created demo user:', demoUser.email);
+                        } catch (authError) {
+                            if (authError.code !== 'auth/email-already-in-use') {
+                                console.error('Error creating demo user:', demoUser.email, authError);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking demo user:', error);
+                }
+            }
+        }
     </script>
 </body>
 </html>
