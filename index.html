@@ -92,38 +92,6 @@
             border-color: transparent;
         }
 
-        .sync-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.25rem 0.75rem;
-            background: var(--success);
-            color: white;
-            border-radius: 1rem;
-            font-size: 0.75rem;
-        }
-
-        .sync-indicator.offline {
-            background: var(--warning);
-        }
-
-        .sync-indicator.syncing {
-            background: var(--secondary);
-        }
-
-        .sync-dot {
-            width: 6px;
-            height: 6px;
-            background: white;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
         /* Header con KPIs */
         .header-kpis {
             background: rgba(255,255,255,0.95);
@@ -238,6 +206,38 @@
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             font-weight: 500;
+        }
+
+        .sync-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--success);
+            color: white;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+        }
+
+        .sync-indicator.offline {
+            background: var(--warning);
+        }
+
+        .sync-indicator.syncing {
+            background: var(--secondary);
+        }
+
+        .sync-dot {
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         /* Container */
@@ -371,6 +371,11 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(107, 70, 193, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-dark {
@@ -988,6 +993,17 @@
             z-index: 9999;
         }
 
+        .loading-btn {
+            position: relative;
+        }
+
+        .loading-btn .spinner {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
         /* Divider */
         .divider {
             height: 1px;
@@ -1027,7 +1043,7 @@
             serverTimestamp
         } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
         
-        // Configuración de Firebase
+        // Tu configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCOmkGV9dc0w-uOFfdK9ee1UVSUU6t6yEM",
             authDomain: "sistema-textil.firebaseapp.com",
@@ -1101,8 +1117,8 @@
                     <input type="password" class="form-input" id="login-password" placeholder="••••••••">
                 </div>
                 
-                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="firebase-login-btn" onclick="App.auth.loginFirebase()">
-                    Iniciar Sesión
+                <button class="btn btn-primary loading-btn" style="width: 100%; margin-top: 1rem;" id="firebase-login-btn" onclick="App.auth.loginFirebase()">
+                    <span>Iniciar Sesión</span>
                 </button>
             </div>
             
@@ -1137,13 +1153,6 @@
             </div>
             
             <div id="login-error" style="margin-top: 1rem; padding: 0.75rem; background: #FEE2E2; color: #DC2626; border-radius: 0.5rem; display: none;"></div>
-            
-            <!-- GitHub Link -->
-            <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 1rem;">
-                <a href="https://github.com/tu-usuario/sistema-control-textil" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 0.875rem;">
-                    📖 Ver código en GitHub
-                </a>
-            </div>
         </div>
     </div>
 
@@ -2259,7 +2268,7 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <!-- JavaScript completo de la aplicación FIREBASE INTEGRADO -->
+    <!-- JavaScript completo de la aplicación con Firebase -->
     <script>
         // SISTEMA CONTROL TEXTIL v3.0 - FIREBASE EDITION
         const App = {
@@ -2279,7 +2288,7 @@
                 }
             },
             
-            // Base de datos local (respaldo y modo offline)
+            // Base de datos local (respaldo)
             db: {
                 ordenes_compra: [],
                 inventario: [],
@@ -2367,14 +2376,14 @@
                         uid: user.uid,
                         email: user.email,
                         nombre: user.displayName || user.email.split('@')[0],
-                        rol: 'admin', // Default rol admin para testing
-                        tipo: 'admin'
+                        rol: 'viewer',
+                        tipo: 'viewer'
                     };
                     
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         userData = { ...userData, ...data };
-                        userData.tipo = data.rol || 'admin'; // Para compatibilidad
+                        userData.tipo = data.rol; // Para compatibilidad
                     } else {
                         // Crear documento de usuario si no existe
                         await window.firebaseFunctions.setDoc(
@@ -2499,11 +2508,6 @@
                 ];
                 
                 this.storage.save();
-                
-                // Si está en modo Firebase, guardar también en la nube
-                if (this.state.mode === 'firebase') {
-                    this.firebase.saveInitialData();
-                }
             },
             
             // Módulo Firebase
@@ -2540,40 +2544,6 @@
                         console.error('Error loading from Firebase:', error);
                         App.state.syncStatus = 'offline';
                         App.updateSyncIndicator();
-                    }
-                },
-                
-                async saveInitialData() {
-                    if (!window.firebaseDB || App.state.mode !== 'firebase') return;
-                    
-                    try {
-                        // Guardar materiales
-                        for (const material of App.db.materiales) {
-                            await window.firebaseFunctions.setDoc(
-                                window.firebaseFunctions.doc(window.firebaseDB, 'materiales', material.id),
-                                material
-                            );
-                        }
-                        
-                        // Guardar proveedores
-                        for (const proveedor of App.db.proveedores) {
-                            await window.firebaseFunctions.setDoc(
-                                window.firebaseFunctions.doc(window.firebaseDB, 'proveedores', proveedor.id),
-                                proveedor
-                            );
-                        }
-                        
-                        // Guardar maquileros
-                        for (const maquilero of App.db.maquileros) {
-                            await window.firebaseFunctions.setDoc(
-                                window.firebaseFunctions.doc(window.firebaseDB, 'maquileros', maquilero.id),
-                                maquilero
-                            );
-                        }
-                        
-                        console.log('Initial data saved to Firebase');
-                    } catch (error) {
-                        console.error('Error saving initial data to Firebase:', error);
                     }
                 },
                 
@@ -2804,12 +2774,6 @@
                 }
             },
             
-            // TODOS LOS DEMÁS MÓDULOS DEL CÓDIGO ORIGINAL
-            // [Continúan todos los módulos: ui, dashboard, compras, inventario, corte, habilitados, terminados, movimientos, catalogos, herramientas, scanner, modal, storage, utils, eventos]
-            // Son idénticos al código original, solo se agregan llamadas a firebase.saveDocument() donde corresponda
-            
-            // ... [Aquí van todos los demás módulos del código original]
-            
             // Módulo UI
             ui: {
                 init() {
@@ -2876,10 +2840,2054 @@
                 }
             },
             
-            // Los demás módulos del código original continúan aquí...
-            // [dashboard, compras, inventario, corte, habilitados, terminados, movimientos, catalogos, herramientas, scanner, modal]
+            // CONTINUACIÓN DE TODOS LOS MÓDULOS ORIGINALES
+            // Módulo Dashboard
+            dashboard: {
+                load() {
+                    const compras = App.db.ordenes_compra.length;
+                    const cortes = App.db.ordenes_corte.length;
+                    const piezas = App.db.ordenes_corte.reduce((sum, c) => sum + (c.total_piezas || 0), 0);
+                    const metros = App.db.ordenes_corte.reduce((sum, c) => sum + (c.metros_totales || 0), 0);
+                    
+                    document.getElementById('stat-compras').textContent = compras;
+                    document.getElementById('stat-cortes').textContent = cortes;
+                    document.getElementById('stat-piezas').textContent = piezas.toLocaleString();
+                    document.getElementById('stat-metros').textContent = Math.round(metros) + 'm';
+                    
+                    // Top materiales
+                    const consumos = {};
+                    App.db.movimientos
+                        .filter(m => m.type === 'consumo_corte')
+                        .forEach(m => {
+                            consumos[m.materialId] = (consumos[m.materialId] || 0) + Math.abs(m.qty);
+                        });
+                    
+                    const topMateriales = Object.entries(consumos)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([matId, qty]) => {
+                            const mat = App.db.materiales.find(m => m.id === matId);
+                            return mat ? `
+                                <div style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+                                    <strong>${mat.nombre}</strong>
+                                    <span style="float: right;">${qty.toFixed(1)} ${mat.unidad}</span>
+                                </div>
+                            ` : '';
+                        }).join('');
+                    
+                    document.getElementById('top-materiales').innerHTML = topMateriales || 
+                        '<p style="color: #9ca3af; text-align: center;">Sin datos aún</p>';
+                    
+                    // Alertas de stock
+                    const alertas = [];
+                    App.db.materiales.forEach(m => {
+                        const stock = m.categoria === 'TELA'
+                            ? App.db.rollos.filter(r => r.materialId === m.id)
+                                .reduce((sum, r) => sum + r.lengthRemain, 0)
+                            : m.stock || 0;
+                        
+                        const minStock = m.minStock || 
+                            (m.categoria === 'TELA' ? 1000 : 
+                             ['CIERRE', 'BOTON', 'ETIQUETA'].includes(m.categoria) ? 6000 : 0);
+                        
+                        if (stock < minStock && stock > 0) {
+                            alertas.push(`
+                                <div class="badge badge-warning" style="margin: 0.25rem;">
+                                    ${m.nombre}: ${stock.toFixed(1)} ${m.unidad} (min: ${minStock})
+                                </div>
+                            `);
+                        } else if (stock === 0) {
+                            alertas.push(`
+                                <div class="badge badge-danger" style="margin: 0.25rem;">
+                                    ${m.nombre}: AGOTADO
+                                </div>
+                            `);
+                        }
+                    });
+                    
+                    document.getElementById('alertas-stock').innerHTML = alertas.length > 0
+                        ? alertas.join('')
+                        : '<p style="color: #10b981;">✔ Todos los materiales están sobre el mínimo</p>';
+                },
+                
+                exportReport() {
+                    const data = {
+                        fecha: new Date().toISOString(),
+                        estadisticas: {
+                            ordenes_compra: App.db.ordenes_compra.length,
+                            cortes: App.db.ordenes_corte.length,
+                            piezas_cortadas: App.db.ordenes_corte.reduce((sum, c) => sum + (c.total_piezas || 0), 0),
+                            metros_consumidos: App.db.ordenes_corte.reduce((sum, c) => sum + (c.metros_totales || 0), 0)
+                        },
+                        inventario: App.db.materiales.map(m => ({
+                            codigo: m.codigo,
+                            nombre: m.nombre,
+                            stock: m.categoria === 'TELA'
+                                ? App.db.rollos.filter(r => r.materialId === m.id)
+                                    .reduce((sum, r) => sum + r.lengthRemain, 0)
+                                : m.stock,
+                            unidad: m.unidad,
+                            valor: ((m.categoria === 'TELA'
+                                ? App.db.rollos.filter(r => r.materialId === m.id)
+                                    .reduce((sum, r) => sum + r.lengthRemain, 0)
+                                : m.stock) || 0) * (m.avgCost || 0)
+                        }))
+                    };
+                    
+                    App.utils.downloadJSON('reporte-dashboard.json', data);
+                    App.ui.toast('Reporte exportado', 'success');
+                }
+            },
             
-            // Módulo Storage (actualizado para Firebase)
+            // Módulo Compras (completo del código original)
+            compras: {
+                ordenEditando: null,
+                productosOrden: [],
+                contadorProductos: 0,
+                
+                load() {
+                    this.cargarListaCompras();
+                    this.actualizarDataLists();
+                },
+                
+                actualizarDataLists() {
+                    const materialesList = document.getElementById('materiales-list');
+                    const codigosList = document.getElementById('codigos-list');
+                    
+                    if (materialesList) {
+                        materialesList.innerHTML = App.db.materiales.map(m => 
+                            `<option value="${m.nombre}">`
+                        ).join('');
+                    }
+                    
+                    if (codigosList) {
+                        codigosList.innerHTML = App.db.materiales.map(m => 
+                            `<option value="${m.codigo}">`
+                        ).join('');
+                    }
+                },
+                
+                cargarListaCompras() {
+                    const container = document.getElementById('lista-ordenes-compra');
+                    if (!container) return;
+                    
+                    if (App.db.ordenes_compra.length === 0) {
+                        container.innerHTML = '<div class="card"><p style="text-align: center; color: #9ca3af;">No hay órdenes de compra</p></div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = App.db.ordenes_compra.map(orden => {
+                        const totalItems = orden.productos.reduce((sum, p) => sum + p.cantidad_pedida, 0);
+                        const totalValor = orden.productos.reduce((sum, p) => sum + (p.cantidad_pedida * p.precio), 0);
+                        
+                        return `
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <div>
+                                        <h3>${orden.folio}</h3>
+                                        <span class="badge badge-${orden.recibido ? 'received' : 'pending'}">
+                                            ${orden.recibido ? 'RECIBIDO' : 'PENDIENTE'}
+                                        </span>
+                                    </div>
+                                    <button class="btn ${orden.recibido ? 'btn-success' : 'btn-warning'}" 
+                                            onclick="App.compras.editarOrden('${orden.folio}')">
+                                        ${orden.recibido ? '✔ Ver Detalle' : '📦 Recibir'}
+                                    </button>
+                                </div>
+                                <div class="order-info">
+                                    <div class="info-item">
+                                        <span class="info-label">Proveedor</span>
+                                        <span class="info-value">${orden.proveedor}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Productos</span>
+                                        <span class="info-value">${orden.productos.length}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Total Items</span>
+                                        <span class="info-value">${totalItems.toFixed(1)}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Valor Total</span>
+                                        <span class="info-value">$${totalValor.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                },
+                
+                mostrarModalNuevaCompra() {
+                    this.contadorProductos = 0;
+                    this.productosOrden = [];
+                    document.getElementById('productos-orden').innerHTML = '';
+                    
+                    const selectProveedor = document.getElementById('compra-proveedor');
+                    selectProveedor.innerHTML = '<option value="">Seleccionar proveedor...</option>' +
+                        App.db.proveedores.map(p => 
+                            `<option value="${p.nombre}">${p.nombre}</option>`
+                        ).join('');
+                    
+                    document.getElementById('compra-fecha-orden').value = new Date().toISOString().split('T')[0];
+                    
+                    this.actualizarDataLists();
+                    this.agregarProductoOrden();
+                    App.modal.abrir('modal-nueva-compra');
+                },
+                
+                agregarProductoOrden() {
+                    const container = document.getElementById('productos-orden');
+                    const id = this.contadorProductos++;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'product-item';
+                    div.id = 'producto-' + id;
+                    div.innerHTML = `
+                        <input type="text" class="form-input" id="codigo-${id}" 
+                               placeholder="Código Material" list="codigos-list"
+                               onchange="App.compras.autocompletarMaterial(${id})">
+                        <input type="text" class="form-input" id="mat-${id}" 
+                               placeholder="Descripción" list="materiales-list"
+                               onchange="App.compras.autocompletarCodigo(${id})">
+                        <select class="form-select" id="cat-${id}">
+                            <option value="TELA">Tela</option>
+                            <option value="CIERRE">Cierre</option>
+                            <option value="BOTON">Botón</option>
+                            <option value="ETIQUETA">Etiqueta</option>
+                            <option value="HILO">Hilo</option>
+                            <option value="QUIMICO">Químico</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        <input type="number" class="form-input" id="cant-${id}" 
+                               placeholder="Cantidad" step="0.1">
+                        <select class="form-select" id="unit-${id}">
+                            <option value="m">metros</option>
+                            <option value="pza">piezas</option>
+                            <option value="kg">kilos</option>
+                            <option value="lt">litros</option>
+                        </select>
+                        <input type="number" class="form-input" id="precio-${id}" 
+                               placeholder="$ Unit" step="0.01">
+                        ${this.contadorProductos > 1 ? 
+                            `<button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()">🗑️</button>` : 
+                            '<span></span>'}
+                    `;
+                    
+                    container.appendChild(div);
+                },
+                
+                autocompletarMaterial(id) {
+                    const codigo = document.getElementById('codigo-' + id).value;
+                    const material = App.db.materiales.find(m => m.codigo === codigo);
+                    
+                    if (material) {
+                        document.getElementById('mat-' + id).value = material.nombre;
+                        document.getElementById('cat-' + id).value = material.categoria;
+                        document.getElementById('unit-' + id).value = material.unidad;
+                        document.getElementById('precio-' + id).value = material.avgCost || 0;
+                    }
+                },
+                
+                autocompletarCodigo(id) {
+                    const nombre = document.getElementById('mat-' + id).value;
+                    const material = App.db.materiales.find(m => m.nombre === nombre);
+                    
+                    if (material) {
+                        document.getElementById('codigo-' + id).value = material.codigo;
+                        document.getElementById('cat-' + id).value = material.categoria;
+                        document.getElementById('unit-' + id).value = material.unidad;
+                        document.getElementById('precio-' + id).value = material.avgCost || 0;
+                    }
+                },
+                
+                async guardarOrdenCompra() {
+                    const proveedor = document.getElementById('compra-proveedor').value.trim();
+                    
+                    if (!proveedor) {
+                        App.ui.toast('Seleccione un proveedor', 'warning');
+                        return;
+                    }
+                    
+                    const productos = [];
+                    document.querySelectorAll('[id^="producto-"]').forEach(div => {
+                        const id = div.id.split('-')[1];
+                        const codigo = document.getElementById('codigo-' + id).value;
+                        const material = document.getElementById('mat-' + id).value;
+                        const cantidad = parseFloat(document.getElementById('cant-' + id).value) || 0;
+                        
+                        if (material && cantidad > 0) {
+                            productos.push({
+                                codigo_material: codigo,
+                                categoria: document.getElementById('cat-' + id).value,
+                                material: material,
+                                cantidad_pedida: cantidad,
+                                unidad: document.getElementById('unit-' + id).value,
+                                precio: parseFloat(document.getElementById('precio-' + id).value) || 0,
+                                rollos: []
+                            });
+                        }
+                    });
+                    
+                    if (productos.length === 0) {
+                        App.ui.toast('Agregue al menos un producto válido', 'warning');
+                        return;
+                    }
+                    
+                    const orden = {
+                        folio: 'OC-' + Date.now(),
+                        proveedor: proveedor,
+                        productos: productos,
+                        fecha_orden: document.getElementById('compra-fecha-orden').value,
+                        estado: 'PENDIENTE',
+                        recibido: false,
+                        fecha_recepcion: null,
+                        recibido_por: null
+                    };
+                    
+                    App.db.ordenes_compra.push(orden);
+                    
+                    // Guardar en Firebase si está disponible
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('ordenes_compra', orden);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('✅ Orden guardada: ' + orden.folio, 'success');
+                    App.modal.cerrar('modal-nueva-compra');
+                    this.cargarListaCompras();
+                },
+                
+                editarOrden(folio) {
+                    this.ordenEditando = App.db.ordenes_compra.find(o => o.folio === folio);
+                    if (!this.ordenEditando) return;
+                    
+                    document.getElementById('orden-info').innerHTML = `
+                        <div class="order-info">
+                            <div class="info-item">
+                                <span class="info-label">Folio</span>
+                                <span class="info-value">${this.ordenEditando.folio}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Proveedor</span>
+                                <span class="info-value">${this.ordenEditando.proveedor}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Fecha Orden</span>
+                                <span class="info-value">${this.ordenEditando.fecha_orden}</span>
+                            </div>
+                            ${this.ordenEditando.recibido ? `
+                            <div class="info-item">
+                                <span class="info-label">Recibido</span>
+                                <span class="info-value">✅ ${this.ordenEditando.fecha_recepcion} por ${this.ordenEditando.recibido_por}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    const rollosSection = document.getElementById('rollos-section');
+                    rollosSection.innerHTML = '';
+                    
+                    this.ordenEditando.productos.forEach((producto, index) => {
+                        if (!producto.rollos) {
+                            producto.rollos = [];
+                        }
+                        
+                        const divProducto = document.createElement('div');
+                        divProducto.className = 'rollos-section';
+                        divProducto.innerHTML = `
+                            <h5 style="margin: 1rem 0; color: #4B5563;">
+                                ${producto.codigo_material ? `<span style="background: #E5E7EB; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">${producto.codigo_material}</span>` : ''} 
+                                ${producto.material} - ${producto.cantidad_pedida} ${producto.unidad}
+                            </h5>
+                            <div id="rollos-producto-${index}">
+                                ${producto.rollos.length > 0 ? 
+                                    producto.rollos.map((rollo, rIndex) => `
+                                        <div class="rollo-item">
+                                            <span><strong>${rollo.codigo}</strong></span>
+                                            <span>${rollo.cantidad} ${producto.unidad}</span>
+                                            <span>${rollo.fecha_ingreso}</span>
+                                            ${!this.ordenEditando.recibido ? 
+                                                `<button class="btn btn-danger btn-small" onclick="App.compras.eliminarRollo(${index}, ${rIndex})">🗑️</button>` 
+                                                : ''}
+                                        </div>
+                                    `).join('') : '<p style="color: #999; padding: 0.5rem;">No hay rollos/items registrados aún</p>'}
+                            </div>
+                            ${!this.ordenEditando.recibido && producto.categoria === 'TELA' ? `
+                                <div class="form-row" style="margin-top: 0.5rem;">
+                                    <input type="text" class="form-input" id="rollo-codigo-${index}" 
+                                           placeholder="Código Rollo (ej: ROL-202501-001)">
+                                    <input type="number" class="form-input" id="rollo-cantidad-${index}" 
+                                           placeholder="Metros" step="0.1">
+                                    <button class="btn btn-dark btn-small" 
+                                            onclick="App.compras.agregarRollo(${index})">+ Agregar Rollo</button>
+                                </div>
+                            ` : ''}
+                            ${!this.ordenEditando.recibido && producto.categoria !== 'TELA' ? `
+                                <button class="btn btn-success" onclick="App.compras.recibirProducto(${index})">
+                                    Marcar como Recibido
+                                </button>
+                            ` : ''}
+                        `;
+                        rollosSection.appendChild(divProducto);
+                    });
+                    
+                    if (!this.ordenEditando.recibido) {
+                        document.getElementById('fecha-recepcion').value = new Date().toISOString().split('T')[0];
+                        document.getElementById('recibido-por').value = App.state.currentUser.nombre;
+                    } else {
+                        document.getElementById('fecha-recepcion').value = this.ordenEditando.fecha_recepcion || '';
+                        document.getElementById('recibido-por').value = this.ordenEditando.recibido_por || '';
+                    }
+                    
+                    App.modal.abrir('modal-editar-orden');
+                },
+                
+                agregarRollo(productoIndex) {
+                    const codigo = document.getElementById(`rollo-codigo-${productoIndex}`).value;
+                    const cantidad = parseFloat(document.getElementById(`rollo-cantidad-${productoIndex}`).value);
+                    
+                    if (!codigo || !cantidad) {
+                        App.ui.toast('Complete código y cantidad del rollo', 'warning');
+                        return;
+                    }
+                    
+                    if (!this.ordenEditando.productos[productoIndex].rollos) {
+                        this.ordenEditando.productos[productoIndex].rollos = [];
+                    }
+                    
+                    this.ordenEditando.productos[productoIndex].rollos.push({
+                        codigo: codigo,
+                        cantidad: cantidad,
+                        fecha_ingreso: new Date().toISOString().split('T')[0]
+                    });
+                    
+                    App.storage.save();
+                    this.actualizarVistaRollos(productoIndex);
+                    
+                    document.getElementById(`rollo-codigo-${productoIndex}`).value = '';
+                    document.getElementById(`rollo-cantidad-${productoIndex}`).value = '';
+                },
+                
+                actualizarVistaRollos(productoIndex) {
+                    const producto = this.ordenEditando.productos[productoIndex];
+                    const container = document.getElementById(`rollos-producto-${productoIndex}`);
+                    
+                    if (producto.rollos && producto.rollos.length > 0) {
+                        container.innerHTML = producto.rollos.map((rollo, rIndex) => `
+                            <div class="rollo-item">
+                                <span><strong>${rollo.codigo}</strong></span>
+                                <span>${rollo.cantidad} ${producto.unidad}</span>
+                                <span>${rollo.fecha_ingreso}</span>
+                                ${!this.ordenEditando.recibido ? 
+                                    `<button class="btn btn-danger btn-small" onclick="App.compras.eliminarRollo(${productoIndex}, ${rIndex})">🗑️</button>` 
+                                    : ''}
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<p style="color: #999; padding: 0.5rem;">No hay rollos registrados aún</p>';
+                    }
+                },
+                
+                eliminarRollo(productoIndex, rolloIndex) {
+                    if (confirm('¿Eliminar este rollo?')) {
+                        this.ordenEditando.productos[productoIndex].rollos.splice(rolloIndex, 1);
+                        App.storage.save();
+                        this.actualizarVistaRollos(productoIndex);
+                    }
+                },
+                
+                async recibirProducto(productoIndex) {
+                    const producto = this.ordenEditando.productos[productoIndex];
+                    producto.recibido = true;
+                    
+                    let material = App.db.materiales.find(m => m.codigo === producto.codigo_material);
+                    if (!material) {
+                        material = {
+                            id: App.utils.uid('MAT'),
+                            codigo: producto.codigo_material || 'AUTO-' + Date.now(),
+                            nombre: producto.material,
+                            categoria: producto.categoria,
+                            unidad: producto.unidad,
+                            stock: 0,
+                            avgCost: producto.precio,
+                            minStock: producto.categoria === 'TELA' ? 1000 : 6000
+                        };
+                        App.db.materiales.push(material);
+                    }
+                    
+                    material.stock = (material.stock || 0) + producto.cantidad_pedida;
+                    
+                    App.movimientos.agregar({
+                        type: 'compra_general',
+                        materialId: material.id,
+                        qty: producto.cantidad_pedida,
+                        unidad: producto.unidad,
+                        notes: `OC ${this.ordenEditando.folio} - ${producto.material}`
+                    });
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('materiales', material, material.id);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('Producto recibido', 'success');
+                    this.editarOrden(this.ordenEditando.folio);
+                },
+                
+                async confirmarRecepcion() {
+                    if (!this.ordenEditando) return;
+                    
+                    if (this.ordenEditando.recibido) {
+                        App.ui.toast('Esta orden ya fue recibida', 'info');
+                        return;
+                    }
+                    
+                    let todosListos = true;
+                    let detalles = [];
+                    
+                    this.ordenEditando.productos.forEach((producto, index) => {
+                        if (producto.categoria === 'TELA') {
+                            if (!producto.rollos || producto.rollos.length === 0) {
+                                todosListos = false;
+                                detalles.push(`- ${producto.material}: Sin rollos registrados`);
+                            } else {
+                                const totalRollos = producto.rollos.reduce((sum, r) => sum + r.cantidad, 0);
+                                detalles.push(`- ${producto.material}: ${producto.rollos.length} rollo(s), total ${totalRollos} ${producto.unidad}`);
+                            }
+                        } else {
+                            if (!producto.recibido) {
+                                todosListos = false;
+                                detalles.push(`- ${producto.material}: No marcado como recibido`);
+                            } else {
+                                detalles.push(`- ${producto.material}: ✔ Recibido`);
+                            }
+                        }
+                    });
+                    
+                    if (!todosListos) {
+                        App.ui.toast('Complete la recepción de todos los productos\n\n' + detalles.join('\n'), 'warning');
+                        return;
+                    }
+                    
+                    if (!confirm('¿Confirmar recepción completa?\n\n' + detalles.join('\n'))) {
+                        return;
+                    }
+                    
+                    // Procesar TELAS - crear rollos
+                    for (const producto of this.ordenEditando.productos) {
+                        if (producto.categoria === 'TELA' && producto.rollos) {
+                            let material = App.db.materiales.find(m => m.codigo === producto.codigo_material);
+                            if (!material) {
+                                material = {
+                                    id: App.utils.uid('MAT'),
+                                    codigo: producto.codigo_material || 'TELA-' + Date.now(),
+                                    nombre: producto.material,
+                                    categoria: 'TELA',
+                                    unidad: 'm',
+                                    avgCost: producto.precio,
+                                    minStock: 1000,
+                                    stock: 0
+                                };
+                                App.db.materiales.push(material);
+                                
+                                if (App.state.mode === 'firebase') {
+                                    await App.firebase.saveDocument('materiales', material, material.id);
+                                }
+                            } else {
+                                if (producto.precio > 0) {
+                                    material.avgCost = producto.precio;
+                                }
+                            }
+                            
+                            for (const rollo of producto.rollos) {
+                                const nuevoRollo = {
+                                    id: App.utils.uid('ROLL'),
+                                    materialId: material.id,
+                                    rollBarcode: rollo.codigo,
+                                    lengthTotal: rollo.cantidad,
+                                    lengthRemain: rollo.cantidad,
+                                    status: 'disponible',
+                                    fechaIngreso: rollo.fecha_ingreso,
+                                    ordenCompra: this.ordenEditando.folio
+                                };
+                                App.db.rollos.push(nuevoRollo);
+                                
+                                if (App.state.mode === 'firebase') {
+                                    await App.firebase.saveDocument('rollos', nuevoRollo, nuevoRollo.id);
+                                }
+                                
+                                App.movimientos.agregar({
+                                    type: 'alta_rollo',
+                                    materialId: material.id,
+                                    rollId: nuevoRollo.id,
+                                    qty: rollo.cantidad,
+                                    unidad: 'm',
+                                    notes: `${material.codigo} ${material.nombre} - ${this.ordenEditando.folio}`
+                                });
+                            }
+                        }
+                    }
+                    
+                    this.ordenEditando.recibido = true;
+                    this.ordenEditando.fecha_recepcion = document.getElementById('fecha-recepcion').value;
+                    this.ordenEditando.recibido_por = document.getElementById('recibido-por').value;
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('ordenes_compra', this.ordenEditando, this.ordenEditando.folio);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.updateKPIs();
+                    App.ui.toast('✅ Recepción completa confirmada', 'success');
+                    App.modal.cerrar('modal-editar-orden');
+                    this.cargarListaCompras();
+                    
+                    if (!document.getElementById('inventario-section').classList.contains('hidden')) {
+                        App.inventario.cargarTabla();
+                    }
+                }
+            },
+            
+            // Módulo Inventario
+            inventario: {
+                categoriaActual: 'TODOS',
+                vistaActual: 'materiales',
+                
+                load() {
+                    this.cargarTabla();
+                    this.cargarSelectRollos();
+                },
+                
+                filtrarCategoria(categoria) {
+                    this.categoriaActual = categoria;
+                    
+                    document.querySelectorAll('.category-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    if (event && event.target) {
+                        event.target.classList.add('active');
+                    }
+                    
+                    this.cargarTabla();
+                },
+                
+                cargarTabla() {
+                    const tbody = document.getElementById('tbody-inventario');
+                    if (!tbody) return;
+                    
+                    let materiales = App.db.materiales;
+                    if (this.categoriaActual !== 'TODOS') {
+                        materiales = materiales.filter(m => m.categoria === this.categoriaActual);
+                    }
+                    
+                    if (materiales.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; color: #9ca3af;">No hay materiales en esta categoría</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = materiales.map(m => {
+                        const stock = m.categoria === 'TELA'
+                            ? App.db.rollos.filter(r => r.materialId === m.id)
+                                .reduce((sum, r) => sum + r.lengthRemain, 0)
+                            : m.stock || 0;
+                        
+                        const minStock = m.minStock || 
+                            (m.categoria === 'TELA' ? 1000 : 
+                             ['CIERRE', 'BOTON', 'ETIQUETA'].includes(m.categoria) ? 6000 : 0);
+                        
+                        const valorTotal = stock * (m.avgCost || 0);
+                        
+                        let estadoBadge = '';
+                        if (stock === 0) {
+                            estadoBadge = '<span class="badge badge-danger">Agotado</span>';
+                        } else if (stock < minStock) {
+                            estadoBadge = '<span class="badge badge-warning">Bajo</span>';
+                        } else {
+                            estadoBadge = '<span class="badge badge-success">OK</span>';
+                        }
+                        
+                        return `
+                            <tr>
+                                <td><strong>${m.codigo}</strong></td>
+                                <td>${m.nombre}</td>
+                                <td>${m.categoria}</td>
+                                <td>${m.color || '-'}</td>
+                                <td>${m.ancho ? m.ancho + 'm' : '-'}</td>
+                                <td class="text-right"><strong>${stock.toFixed(2)}</strong></td>
+                                <td>${m.unidad}</td>
+                                <td class="text-right">${(m.avgCost || 0).toFixed(2)}</td>
+                                <td class="text-right">${valorTotal.toFixed(2)}</td>
+                                <td>${minStock}</td>
+                                <td>${estadoBadge}</td>
+                                <td>
+                                    <button class="btn btn-ghost btn-small" onclick="App.inventario.ajustar('${m.id}')">
+                                        Ajustar
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                },
+                
+                abrirVistaRollos() {
+                    document.getElementById('vista-materiales-card').classList.add('hidden');
+                    document.getElementById('vista-rollos').classList.remove('hidden');
+                    this.vistaActual = 'rollos';
+                    this.cargarSelectRollos();
+                    this.cargarTablaRollos(null);
+                },
+                
+                toggleVista(btn) {
+                    if (this.vistaActual === 'materiales') {
+                        this.abrirVistaRollos();
+                        btn.textContent = 'Cambiar a Vista Materiales';
+                    } else {
+                        document.getElementById('vista-materiales-card').classList.remove('hidden');
+                        document.getElementById('vista-rollos').classList.add('hidden');
+                        this.vistaActual = 'materiales';
+                        btn.textContent = 'Cambiar a Vista Rollos';
+                    }
+                },
+                
+                cargarSelectRollos() {
+                    const select = document.getElementById('rollos-material');
+                    if (!select) return;
+                    
+                    const telas = App.db.materiales.filter(m => m.categoria === 'TELA');
+                    select.innerHTML = '<option value="">Todas las telas...</option>' +
+                        telas.map(t => `<option value="${t.id}">${t.codigo} - ${t.nombre}</option>`).join('');
+                },
+                
+                cargarTablaRollos(materialId) {
+                    const tbody = document.getElementById('tbody-rollos');
+                    if (!tbody) return;
+                    
+                    let rollos = App.db.rollos;
+                    if (materialId) {
+                        rollos = rollos.filter(r => r.materialId === materialId);
+                    }
+                    
+                    if (rollos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #9ca3af;">No hay rollos registrados</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = rollos.map(rollo => {
+                        const material = App.db.materiales.find(m => m.id === rollo.materialId);
+                        
+                        let estadoBadge = '';
+                        if (rollo.status === 'agotado' || rollo.lengthRemain <= 0) {
+                            estadoBadge = '<span class="badge badge-danger">Agotado</span>';
+                        } else if (rollo.lengthRemain < 50) {
+                            estadoBadge = '<span class="badge badge-warning">Poco stock</span>';
+                        } else {
+                            estadoBadge = '<span class="badge badge-success">Disponible</span>';
+                        }
+                        
+                        return `
+                            <tr>
+                                <td><input type="checkbox" value="${rollo.id}"></td>
+                                <td><strong>${rollo.rollBarcode}</strong></td>
+                                <td>${material ? material.nombre : 'N/A'}</td>
+                                <td class="text-right">${rollo.lengthTotal.toFixed(2)}</td>
+                                <td class="text-right"><strong>${rollo.lengthRemain.toFixed(2)}</strong></td>
+                                <td>${estadoBadge}</td>
+                                <td>${rollo.ordenCompra || '-'}</td>
+                                <td>${rollo.fechaIngreso || '-'}</td>
+                                <td>
+                                    <button class="btn btn-ghost btn-small" onclick="App.inventario.ajustarRollo('${rollo.id}')">
+                                        Ajustar
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                },
+                
+                filtrarRollos() {
+                    const materialId = document.getElementById('rollos-material').value;
+                    this.cargarTablaRollos(materialId || null);
+                },
+                
+                verTodosRollos() {
+                    document.getElementById('rollos-material').value = '';
+                    this.cargarTablaRollos(null);
+                },
+                
+                dividirRollo() {
+                    App.ui.toast('Función de división de rollos en desarrollo', 'info');
+                },
+                
+                async ajustarRollo(rolloId) {
+                    if (!App.auth.requireAdmin()) return;
+                    
+                    const rollo = App.db.rollos.find(r => r.id === rolloId);
+                    if (!rollo) return;
+                    
+                    const nuevoStock = parseFloat(prompt(`Ajustar metros del rollo ${rollo.rollBarcode}\n\nStock actual: ${rollo.lengthRemain}m\n\nNuevos metros:`));
+                    
+                    if (isNaN(nuevoStock) || nuevoStock < 0) {
+                        App.ui.toast('Cantidad no válida', 'danger');
+                        return;
+                    }
+                    
+                    const diferencia = nuevoStock - rollo.lengthRemain;
+                    rollo.lengthRemain = nuevoStock;
+                    
+                    if (nuevoStock <= 0) {
+                        rollo.status = 'agotado';
+                    }
+                    
+                    App.movimientos.agregar({
+                        type: 'ajuste_admin',
+                        materialId: rollo.materialId,
+                        rollId: rolloId,
+                        qty: diferencia,
+                        unidad: 'm',
+                        notes: 'Ajuste manual de rollo'
+                    });
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('rollos', rollo, rollo.id);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('Rollo ajustado', 'success');
+                    this.cargarTablaRollos(document.getElementById('rollos-material').value || null);
+                },
+                
+                async ajustar(materialId) {
+                    if (!App.auth.requireAdmin()) return;
+                    
+                    const material = App.db.materiales.find(m => m.id === materialId);
+                    if (!material) return;
+                    
+                    if (material.categoria === 'TELA') {
+                        const metros = parseFloat(prompt('Agregar nuevo rollo de ' + material.nombre + '\n\nMetros del rollo:'));
+                        
+                        if (isNaN(metros) || metros <= 0) {
+                            App.ui.toast('Cantidad no válida', 'danger');
+                            return;
+                        }
+                        
+                        const codigo = prompt('Código del rollo (opcional):') || 'ROL-MANUAL-' + Date.now();
+                        
+                        const nuevoRollo = {
+                            id: App.utils.uid('ROLL'),
+                            materialId: material.id,
+                            rollBarcode: codigo,
+                            lengthTotal: metros,
+                            lengthRemain: metros,
+                            status: 'disponible',
+                            fechaIngreso: new Date().toISOString().split('T')[0],
+                            ordenCompra: 'AJUSTE MANUAL'
+                        };
+                        
+                        App.db.rollos.push(nuevoRollo);
+                        
+                        if (App.state.mode === 'firebase') {
+                            await App.firebase.saveDocument('rollos', nuevoRollo, nuevoRollo.id);
+                        }
+                        
+                        App.movimientos.agregar({
+                            type: 'ajuste_admin',
+                            materialId: materialId,
+                            rollId: nuevoRollo.id,
+                            qty: metros,
+                            unidad: 'm',
+                            notes: 'Ajuste manual - Nuevo rollo agregado'
+                        });
+                        
+                        App.ui.toast('Rollo agregado: ' + metros + 'm', 'success');
+                    } else {
+                        const nuevoStock = parseFloat(prompt('Ajustar stock de ' + material.nombre + '\n\nStock actual: ' + (material.stock || 0) + ' ' + material.unidad + '\n\nNuevo stock:'));
+                        
+                        if (isNaN(nuevoStock) || nuevoStock < 0) {
+                            App.ui.toast('Cantidad no válida', 'danger');
+                            return;
+                        }
+                        
+                        const diferencia = nuevoStock - (material.stock || 0);
+                        material.stock = nuevoStock;
+                        
+                        if (App.state.mode === 'firebase') {
+                            await App.firebase.saveDocument('materiales', material, material.id);
+                        }
+                        
+                        App.movimientos.agregar({
+                            type: 'ajuste_admin',
+                            materialId: materialId,
+                            qty: diferencia,
+                            unidad: material.unidad,
+                            notes: 'Ajuste manual de inventario'
+                        });
+                        
+                        App.ui.toast('Stock ajustado', 'success');
+                    }
+                    
+                    App.storage.save();
+                    this.cargarTabla();
+                },
+                
+                async sincronizarFirebase() {
+                    if (App.state.mode !== 'firebase') {
+                        App.ui.toast('Debe estar en modo Cloud para sincronizar', 'warning');
+                        return;
+                    }
+                    
+                    await App.firebase.loadData();
+                    App.ui.toast('Sincronización completada', 'success');
+                    this.cargarTabla();
+                },
+                
+                exportar() {
+                    const data = {
+                        materiales: App.db.materiales,
+                        rollos: App.db.rollos,
+                        fecha_exportacion: new Date().toISOString()
+                    };
+                    
+                    App.utils.downloadJSON('inventario.json', data);
+                    App.ui.toast('Inventario exportado', 'success');
+                }
+            },
+            
+            // Módulo Corte
+            corte: {
+                rollosEscaneados: [],
+                corteEditando: null,
+                
+                load() {
+                    document.getElementById('corte-fecha').value = new Date().toISOString().split('T')[0];
+                    this.actualizarNumeroCorte();
+                    this.rollosEscaneados = [];
+                    this.actualizarListaRollos();
+                },
+                
+                actualizarNumeroCorte() {
+                    const ultimoNumero = App.db.ordenes_corte.length;
+                    const siguiente = String(ultimoNumero + 1).padStart(4, '0');
+                    document.getElementById('proximo-numero-corte').textContent = siguiente;
+                },
+                
+                generarCodigo() {
+                    const fecha = new Date();
+                    const año = fecha.getFullYear();
+                    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                    const numero = document.getElementById('proximo-numero-corte').textContent;
+                    
+                    document.getElementById('corte-codigo').value = 'COR-' + año + mes + '-' + numero;
+                },
+                
+                generarBultos() {
+                    const bultos = parseInt(document.getElementById('corte-bultos').value) || 0;
+                    this.calcularTotal();
+                },
+                
+                calcularTotal() {
+                    const bultos = parseInt(document.getElementById('corte-bultos').value) || 0;
+                    const dobleces = parseInt(document.getElementById('corte-dobleces').value) || 0;
+                    const total = bultos * dobleces;
+                    document.getElementById('corte-total-prendas').value = total;
+                },
+                
+                calcularTotalEdit() {
+                    const bultos = parseInt(document.getElementById('edit-corte-bultos').value) || 0;
+                    const dobleces = parseInt(document.getElementById('edit-corte-dobleces').value) || 0;
+                    const total = bultos * dobleces;
+                    document.getElementById('edit-corte-total-prendas').value = total;
+                },
+                
+                toggleMetrosInput() {
+                    const usarCompleto = document.getElementById('usar-rollo-completo').checked;
+                    const metrosGroup = document.getElementById('metros-input-group');
+                    const btnText = document.getElementById('btn-text');
+                    
+                    if (usarCompleto) {
+                        metrosGroup.style.display = 'none';
+                        btnText.textContent = 'Agregar Rollo Completo';
+                    } else {
+                        metrosGroup.style.display = 'block';
+                        btnText.textContent = 'Agregar Parcial';
+                    }
+                },
+                
+                procesarEscaneo() {
+                    const codigo = document.getElementById('scanner-codigo').value.trim();
+                    
+                    if (!codigo) {
+                        App.ui.toast('Ingrese el código del rollo', 'warning');
+                        return;
+                    }
+                    
+                    const rollo = App.db.rollos.find(r => r.rollBarcode === codigo);
+                    if (!rollo) {
+                        App.ui.toast('Rollo no encontrado: ' + codigo, 'danger');
+                        return;
+                    }
+                    
+                    if (this.rollosEscaneados.some(r => r.codigo === codigo)) {
+                        App.ui.toast('Este rollo ya fue escaneado', 'warning');
+                        return;
+                    }
+                    
+                    const usarCompleto = document.getElementById('usar-rollo-completo').checked;
+                    let metrosUsados = 0;
+                    let merma = parseFloat(document.getElementById('scanner-merma').value) || 0;
+                    
+                    if (usarCompleto) {
+                        metrosUsados = rollo.lengthRemain;
+                    } else {
+                        metrosUsados = parseFloat(document.getElementById('scanner-metros').value);
+                        if (!metrosUsados || metrosUsados <= 0) {
+                            App.ui.toast('Ingrese los metros a usar', 'warning');
+                            return;
+                        }
+                        if (metrosUsados > rollo.lengthRemain) {
+                            App.ui.toast('Solo hay ' + rollo.lengthRemain + 'm disponibles', 'warning');
+                            return;
+                        }
+                    }
+                    
+                    const material = App.db.materiales.find(m => m.id === rollo.materialId);
+                    this.rollosEscaneados.push({
+                        codigo: codigo,
+                        rolloId: rollo.id,
+                        materialId: rollo.materialId,
+                        material: material ? material.nombre : 'N/A',
+                        metros_usados: metrosUsados,
+                        metros_disponibles: rollo.lengthRemain,
+                        merma: merma,
+                        rollo_completo: usarCompleto
+                    });
+                    
+                    this.actualizarListaRollos();
+                    
+                    document.getElementById('scanner-codigo').value = '';
+                    document.getElementById('scanner-metros').value = '';
+                    document.getElementById('scanner-merma').value = '0';
+                    document.getElementById('scanner-codigo').focus();
+                    
+                    App.ui.toast('Rollo agregado', 'success');
+                },
+                
+                actualizarListaRollos() {
+                    const container = document.getElementById('rollos-escaneados');
+                    
+                    if (this.rollosEscaneados.length === 0) {
+                        container.innerHTML = '<div style="color: #9ca3af; text-align: center; padding: 1rem;">Sin rollos escaneados aún.</div>';
+                        document.getElementById('resumen-consumo').style.display = 'none';
+                        return;
+                    }
+                    
+                    container.innerHTML = this.rollosEscaneados.map((rollo, index) => `
+                        <div class="scanner-item">
+                            <span>
+                                <strong>${rollo.codigo}</strong> - ${rollo.material}
+                            </span>
+                            <span>
+                                ${rollo.metros_usados}m ${rollo.rollo_completo ? '(COMPLETO)' : 'de ' + rollo.metros_disponibles + 'm'}
+                                ${rollo.merma > 0 ? '| Merma: ' + rollo.merma + 'm' : ''}
+                            </span>
+                            <button class="btn btn-danger btn-small" onclick="App.corte.quitarRollo(${index})">
+                                Quitar
+                            </button>
+                        </div>
+                    `).join('');
+                    
+                    const totalMetros = this.rollosEscaneados.reduce((sum, r) => sum + r.metros_usados, 0);
+                    const totalMerma = this.rollosEscaneados.reduce((sum, r) => sum + r.merma, 0);
+                    
+                    document.getElementById('resumen-consumo').style.display = 'block';
+                    document.getElementById('resumen-detalle').innerHTML = `
+                        <div style="margin-top: 0.5rem;">
+                            • Rollos escaneados: ${this.rollosEscaneados.length}<br>
+                            • Total metros: <strong>${totalMetros.toFixed(2)}m</strong><br>
+                            • Total merma: ${totalMerma.toFixed(2)}m<br>
+                            • Metros netos: ${(totalMetros - totalMerma).toFixed(2)}m
+                        </div>
+                    `;
+                },
+                
+                quitarRollo(index) {
+                    this.rollosEscaneados.splice(index, 1);
+                    this.actualizarListaRollos();
+                },
+                
+                async guardar() {
+                    const codigo = document.getElementById('corte-codigo').value;
+                    const producto = document.getElementById('corte-producto').value;
+                    const modelo = document.getElementById('corte-modelo').value;
+                    
+                    if (!codigo || !producto || !modelo) {
+                        App.ui.toast('Complete los campos obligatorios', 'warning');
+                        return;
+                    }
+                    
+                    if (this.rollosEscaneados.length === 0) {
+                        App.ui.toast('Debe escanear al menos un rollo', 'warning');
+                        return;
+                    }
+                    
+                    const corte = {
+                        folio: App.utils.uid('CUT'),
+                        numero_corte: document.getElementById('proximo-numero-corte').textContent,
+                        codigo_corte: codigo,
+                        producto: producto,
+                        modelo: modelo,
+                        trazo: parseFloat(document.getElementById('corte-trazo').value) || 0,
+                        ancho: parseFloat(document.getElementById('corte-ancho').value) || 0,
+                        bultos: parseInt(document.getElementById('corte-bultos').value) || 0,
+                        dobleces: parseInt(document.getElementById('corte-dobleces').value) || 0,
+                        total_piezas: parseInt(document.getElementById('corte-total-prendas').value) || 0,
+                        tallas: document.getElementById('corte-tallas').value,
+                        rollos_usados: this.rollosEscaneados,
+                        metros_totales: this.rollosEscaneados.reduce((sum, r) => sum + r.metros_usados, 0),
+                        fecha: document.getElementById('corte-fecha').value,
+                        cortador: document.getElementById('corte-cortador').value,
+                        usuario: App.state.currentUser.nombre
+                    };
+                    
+                    // Descontar del inventario
+                    for (const rolloEsc of this.rollosEscaneados) {
+                        const rollo = App.db.rollos.find(r => r.id === rolloEsc.rolloId);
+                        if (rollo) {
+                            rollo.lengthRemain -= rolloEsc.metros_usados;
+                            if (rollo.lengthRemain <= 0) {
+                                rollo.lengthRemain = 0;
+                                rollo.status = 'agotado';
+                            }
+                            
+                            if (App.state.mode === 'firebase') {
+                                await App.firebase.saveDocument('rollos', rollo, rollo.id);
+                            }
+                            
+                            App.movimientos.agregar({
+                                type: 'consumo_corte',
+                                materialId: rollo.materialId,
+                                rollId: rollo.id,
+                                qty: -rolloEsc.metros_usados,
+                                unidad: 'm',
+                                refCorte: codigo,
+                                merma: rolloEsc.merma,
+                                notes: 'Corte ' + codigo + ' - ' + producto
+                            });
+                        }
+                    }
+                    
+                    App.db.ordenes_corte.push(corte);
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('ordenes_corte', corte, corte.folio);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('✅ Orden de corte #' + corte.numero_corte + ' guardada', 'success');
+                    
+                    this.limpiarFormulario();
+                },
+                
+                limpiarFormulario() {
+                    document.getElementById('corte-codigo').value = '';
+                    document.getElementById('corte-producto').value = '';
+                    document.getElementById('corte-modelo').value = '';
+                    document.getElementById('corte-trazo').value = '';
+                    document.getElementById('corte-ancho').value = '';
+                    document.getElementById('corte-bultos').value = '';
+                    document.getElementById('corte-dobleces').value = '';
+                    document.getElementById('corte-total-prendas').value = '';
+                    document.getElementById('corte-tallas').value = '';
+                    document.getElementById('corte-cortador').value = '';
+                    
+                    this.rollosEscaneados = [];
+                    this.actualizarListaRollos();
+                    this.actualizarNumeroCorte();
+                },
+                
+                verLista() {
+                    this.cargarListaCortes();
+                    App.modal.abrir('modal-lista-cortes');
+                },
+                
+                cargarListaCortes() {
+                    const tbody = document.getElementById('tbody-lista-cortes');
+                    if (!tbody) return;
+                    
+                    const cortes = App.db.ordenes_corte.sort((a, b) => 
+                        parseInt(b.numero_corte) - parseInt(a.numero_corte)
+                    );
+                    
+                    if (cortes.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; color: #9ca3af;">No hay órdenes de corte</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = cortes.map(corte => `
+                        <tr>
+                            <td><strong>#${corte.numero_corte}</strong></td>
+                            <td style="font-size: 0.75rem;">${corte.codigo_corte}</td>
+                            <td>${corte.producto}</td>
+                            <td>${corte.modelo}</td>
+                            <td>${corte.trazo || 0}m</td>
+                            <td>${corte.ancho || 0}m</td>
+                            <td>${corte.bultos}</td>
+                            <td>${corte.dobleces}</td>
+                            <td><strong>${corte.total_piezas}</strong></td>
+                            <td style="font-size: 0.75rem;">${corte.tallas || '-'}</td>
+                            <td>${corte.rollos_usados?.length || 0}</td>
+                            <td><strong>${corte.metros_totales?.toFixed(1) || 0}m</strong></td>
+                            <td>${corte.fecha}</td>
+                            <td>
+                                <button class="btn btn-ghost btn-small" 
+                                        onclick="App.corte.editarCorte('${corte.folio}')">
+                                    ✏️ Editar
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                },
+                
+                buscarEnLista() {
+                    const busqueda = document.getElementById('buscar-corte').value.toLowerCase();
+                    const filas = document.querySelectorAll('#tbody-lista-cortes tr');
+                    
+                    filas.forEach(fila => {
+                        const texto = fila.textContent.toLowerCase();
+                        fila.style.display = texto.includes(busqueda) ? '' : 'none';
+                    });
+                },
+                
+                exportarLista() {
+                    const data = App.db.ordenes_corte.map(c => ({
+                        numero: c.numero_corte,
+                        codigo: c.codigo_corte,
+                        producto: c.producto,
+                        modelo: c.modelo,
+                        piezas: c.total_piezas,
+                        metros: c.metros_totales,
+                        fecha: c.fecha
+                    }));
+                    
+                    App.utils.downloadCSV('lista-cortes.csv', data);
+                    App.ui.toast('Lista exportada', 'success');
+                },
+                
+                editarCorte(folio) {
+                    const corte = App.db.ordenes_corte.find(c => c.folio === folio);
+                    if (!corte) return;
+                    
+                    this.corteEditando = corte;
+                    
+                    document.getElementById('edit-corte-folio').value = corte.folio;
+                    document.getElementById('edit-corte-codigo').value = corte.codigo_corte;
+                    document.getElementById('edit-corte-cortador').value = corte.cortador || '';
+                    document.getElementById('edit-corte-fecha').value = corte.fecha;
+                    document.getElementById('edit-corte-producto').value = corte.producto;
+                    document.getElementById('edit-corte-modelo').value = corte.modelo;
+                    document.getElementById('edit-corte-trazo').value = corte.trazo || 0;
+                    document.getElementById('edit-corte-ancho').value = corte.ancho || 0;
+                    document.getElementById('edit-corte-bultos').value = corte.bultos || 0;
+                    document.getElementById('edit-corte-dobleces').value = corte.dobleces || 0;
+                    document.getElementById('edit-corte-total-prendas').value = corte.total_piezas || 0;
+                    document.getElementById('edit-corte-tallas').value = corte.tallas || '';
+                    
+                    App.modal.cerrar('modal-lista-cortes');
+                    App.modal.abrir('modal-editar-corte');
+                },
+                
+                async guardarEdicion() {
+                    if (!this.corteEditando) return;
+                    
+                    const folio = document.getElementById('edit-corte-folio').value;
+                    const corte = App.db.ordenes_corte.find(c => c.folio === folio);
+                    
+                    if (!corte) {
+                        App.ui.toast('Error: Corte no encontrado', 'danger');
+                        return;
+                    }
+                    
+                    corte.cortador = document.getElementById('edit-corte-cortador').value;
+                    corte.fecha = document.getElementById('edit-corte-fecha').value;
+                    corte.producto = document.getElementById('edit-corte-producto').value;
+                    corte.modelo = document.getElementById('edit-corte-modelo').value;
+                    corte.trazo = parseFloat(document.getElementById('edit-corte-trazo').value) || 0;
+                    corte.ancho = parseFloat(document.getElementById('edit-corte-ancho').value) || 0;
+                    corte.bultos = parseInt(document.getElementById('edit-corte-bultos').value) || 0;
+                    corte.dobleces = parseInt(document.getElementById('edit-corte-dobleces').value) || 0;
+                    corte.total_piezas = parseInt(document.getElementById('edit-corte-total-prendas').value) || 0;
+                    corte.tallas = document.getElementById('edit-corte-tallas').value;
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('ordenes_corte', corte, corte.folio);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('✅ Corte actualizado', 'success');
+                    
+                    App.modal.cerrar('modal-editar-corte');
+                    this.cargarListaCortes();
+                    App.modal.abrir('modal-lista-cortes');
+                }
+            },
+            
+            // Módulos adicionales (habilitados, terminados, movimientos, catalogos, herramientas, scanner, modal, storage, utils, eventos)
+            habilitados: {
+                load() {
+                    this.cargarSelects();
+                    this.cargarHistorial();
+                },
+                
+                cargarSelects() {
+                    const selectMaquilero = document.getElementById('hab-maquilero');
+                    if (selectMaquilero) {
+                        selectMaquilero.innerHTML = '<option value="">Seleccionar...</option>' + 
+                            App.db.maquileros.map(m => 
+                                `<option value="${m.id}">${m.nombre}</option>`
+                            ).join('');
+                    }
+                    
+                    const selectMaterial = document.getElementById('hab-material');
+                    if (selectMaterial) {
+                        selectMaterial.innerHTML = '<option value="">Seleccionar...</option>' + 
+                            App.db.materiales
+                                .filter(m => m.categoria !== 'TELA')
+                                .map(m => 
+                                    `<option value="${m.id}">${m.codigo} - ${m.nombre}</option>`
+                                ).join('');
+                    }
+                },
+                
+                cargarHistorial() {
+                    const tbody = document.getElementById('tbody-habilitados');
+                    if (!tbody) return;
+                    
+                    const habilitados = App.db.habilitados.slice(-50).reverse();
+                    
+                    if (habilitados.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #9ca3af;">Sin habilitados registrados</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = habilitados.map(h => {
+                        const material = App.db.materiales.find(m => m.id === h.materialId);
+                        const maquilero = App.db.maquileros.find(m => m.id === h.maquileroId);
+                        
+                        return `
+                            <tr>
+                                <td>${new Date(h.fecha).toLocaleDateString()}</td>
+                                <td>${maquilero?.nombre || 'N/A'}</td>
+                                <td>${material?.nombre || 'N/A'}</td>
+                                <td class="text-right">${h.cantidad}</td>
+                                <td>${h.unidad}</td>
+                                <td>
+                                    <span class="badge badge-${h.tipo === 'entrega' ? 'success' : 'warning'}">
+                                        ${h.tipo}
+                                    </span>
+                                </td>
+                                <td>${h.refCorte || '-'}</td>
+                                <td>${h.usuario}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                },
+                
+                async procesar() {
+                    const maquileroId = document.getElementById('hab-maquilero').value;
+                    const materialId = document.getElementById('hab-material').value;
+                    const cantidad = parseFloat(document.getElementById('hab-cantidad').value);
+                    const tipo = document.getElementById('hab-tipo').value;
+                    const refCorte = document.getElementById('hab-ref-corte').value;
+                    
+                    if (!maquileroId || !materialId || !cantidad) {
+                        App.ui.toast('Complete todos los campos requeridos', 'warning');
+                        return;
+                    }
+                    
+                    const material = App.db.materiales.find(m => m.id === materialId);
+                    if (!material) return;
+                    
+                    if (tipo === 'entrega' && material.stock < cantidad) {
+                        App.ui.toast('Stock insuficiente. Disponible: ' + material.stock, 'danger');
+                        return;
+                    }
+                    
+                    if (tipo === 'entrega') {
+                        material.stock -= cantidad;
+                    } else {
+                        material.stock += cantidad;
+                    }
+                    
+                    const habilitado = {
+                        id: App.utils.uid('HAB'),
+                        fecha: Date.now(),
+                        maquileroId: maquileroId,
+                        materialId: materialId,
+                        cantidad: cantidad,
+                        unidad: material.unidad,
+                        tipo: tipo,
+                        refCorte: refCorte,
+                        usuario: App.state.currentUser.nombre
+                    };
+                    
+                    App.db.habilitados.push(habilitado);
+                    
+                    App.movimientos.agregar({
+                        type: 'habilitado_maquilero',
+                        materialId: materialId,
+                        maquileroId: maquileroId,
+                        qty: tipo === 'entrega' ? -cantidad : cantidad,
+                        unidad: material.unidad,
+                        refCorte: refCorte,
+                        notes: tipo.toUpperCase() + ' a maquilero'
+                    });
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('materiales', material, material.id);
+                        await App.firebase.saveDocument('habilitados', habilitado);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('✅ Habilitado procesado', 'success');
+                    
+                    document.getElementById('hab-cantidad').value = '';
+                    document.getElementById('hab-ref-corte').value = '';
+                    
+                    this.cargarHistorial();
+                }
+            },
+            
+            terminados: {
+                load() {
+                    this.cargarSelects();
+                    this.cargarHistorial();
+                },
+                
+                cargarSelects() {
+                    const selectMaterial = document.getElementById('ter-material');
+                    if (selectMaterial) {
+                        selectMaterial.innerHTML = '<option value="">Seleccionar...</option>' + 
+                            App.db.materiales
+                                .filter(m => m.categoria !== 'TELA')
+                                .map(m => 
+                                    `<option value="${m.id}">${m.codigo} - ${m.nombre}</option>`
+                                ).join('');
+                    }
+                },
+                
+                cargarHistorial() {
+                    const tbody = document.getElementById('tbody-terminados');
+                    if (!tbody) return;
+                    
+                    const terminados = App.db.terminados.slice(-50).reverse();
+                    
+                    if (terminados.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #9ca3af;">Sin registros de terminados</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = terminados.map(t => {
+                        const material = App.db.materiales.find(m => m.id === t.materialId);
+                        
+                        return `
+                            <tr>
+                                <td>${new Date(t.fecha).toLocaleDateString()}</td>
+                                <td>${material?.nombre || 'N/A'}</td>
+                                <td class="text-right">${t.cantidad}</td>
+                                <td>${t.unidad}</td>
+                                <td>
+                                    <span class="badge badge-${t.tipo === 'entrega' ? 'info' : 'warning'}">
+                                        ${t.tipo}
+                                    </span>
+                                </td>
+                                <td>${t.refCorte || '-'}</td>
+                                <td>${t.notas || '-'}</td>
+                                <td>${t.usuario}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                },
+                
+                async procesar() {
+                    const materialId = document.getElementById('ter-material').value;
+                    const cantidad = parseFloat(document.getElementById('ter-cantidad').value);
+                    const tipo = document.getElementById('ter-tipo').value;
+                    const refCorte = document.getElementById('ter-ref-corte').value;
+                    const notas = document.getElementById('ter-notas').value;
+                    
+                    if (!materialId || !cantidad) {
+                        App.ui.toast('Complete material y cantidad', 'warning');
+                        return;
+                    }
+                    
+                    const material = App.db.materiales.find(m => m.id === materialId);
+                    if (!material) return;
+                    
+                    if (tipo === 'entrega' && material.stock < cantidad) {
+                        App.ui.toast('Stock insuficiente. Disponible: ' + material.stock, 'danger');
+                        return;
+                    }
+                    
+                    if (tipo === 'entrega') {
+                        material.stock -= cantidad;
+                    } else {
+                        material.stock += cantidad;
+                    }
+                    
+                    const terminado = {
+                        id: App.utils.uid('TER'),
+                        fecha: Date.now(),
+                        materialId: materialId,
+                        cantidad: cantidad,
+                        unidad: material.unidad,
+                        tipo: tipo,
+                        refCorte: refCorte,
+                        notas: notas,
+                        usuario: App.state.currentUser.nombre
+                    };
+                    
+                    App.db.terminados.push(terminado);
+                    
+                    App.movimientos.agregar({
+                        type: 'material_terminados',
+                        materialId: materialId,
+                        qty: tipo === 'entrega' ? -cantidad : cantidad,
+                        unidad: material.unidad,
+                        refCorte: refCorte,
+                        notes: 'TERMINADOS: ' + (notas || tipo)
+                    });
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('materiales', material, material.id);
+                        await App.firebase.saveDocument('terminados', terminado);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('✅ Procesado para terminados', 'success');
+                    
+                    document.getElementById('ter-cantidad').value = '';
+                    document.getElementById('ter-ref-corte').value = '';
+                    document.getElementById('ter-notas').value = '';
+                    
+                    this.cargarHistorial();
+                }
+            },
+            
+            movimientos: {
+                async agregar(movimiento) {
+                    const mov = {
+                        id: App.utils.uid('MOV'),
+                        when: Date.now(),
+                        usuario: App.state.currentUser?.nombre || 'Sistema',
+                        ...movimiento
+                    };
+                    
+                    App.db.movimientos.push(mov);
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('movimientos', mov);
+                    }
+                    
+                    App.ui.updateKPIs();
+                },
+                
+                load() {
+                    this.cargarTabla();
+                },
+                
+                cargarTabla() {
+                    const tbody = document.getElementById('tbody-movimientos');
+                    if (!tbody) return;
+                    
+                    const movimientos = App.db.movimientos.slice(-100).reverse();
+                    
+                    if (movimientos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #9ca3af;">Sin movimientos registrados</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = movimientos.map(m => {
+                        const material = App.db.materiales.find(mat => mat.id === m.materialId);
+                        const maquilero = m.maquileroId ? App.db.maquileros.find(maq => maq.id === m.maquileroId) : null;
+                        
+                        return `
+                            <tr>
+                                <td>${new Date(m.when).toLocaleString()}</td>
+                                <td>${m.type}</td>
+                                <td>${material?.nombre || 'N/A'}</td>
+                                <td>${m.rollId || '-'}</td>
+                                <td class="text-right">${m.qty > 0 ? '+' : ''}${m.qty}</td>
+                                <td>${m.unidad || '-'}</td>
+                                <td>${m.refCorte || '-'}</td>
+                                <td>${maquilero?.nombre || '-'}</td>
+                                <td>${m.usuario}</td>
+                                <td>${m.notes || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                },
+                
+                exportarCSV() {
+                    const data = App.db.movimientos.map(m => {
+                        const material = App.db.materiales.find(mat => mat.id === m.materialId);
+                        return {
+                            fecha: new Date(m.when).toLocaleString(),
+                            tipo: m.type,
+                            material: material?.nombre || 'N/A',
+                            cantidad: m.qty,
+                            unidad: m.unidad,
+                            ref_corte: m.refCorte || '',
+                            usuario: m.usuario,
+                            notas: m.notes || ''
+                        };
+                    });
+                    
+                    App.utils.downloadCSV('movimientos.csv', data);
+                    App.ui.toast('Movimientos exportados', 'success');
+                },
+                
+                exportarJSON() {
+                    App.utils.downloadJSON('movimientos.json', App.db.movimientos);
+                    App.ui.toast('Movimientos exportados', 'success');
+                }
+            },
+            
+            catalogos: {
+                load() {
+                    this.cargarTablas();
+                },
+                
+                cargarTablas() {
+                    const tablaMateriales = document.getElementById('tabla-materiales');
+                    if (tablaMateriales) {
+                        tablaMateriales.innerHTML = App.db.materiales.map(m => `
+                            <tr>
+                                <td>${m.codigo}</td>
+                                <td>${m.nombre}</td>
+                                <td>${m.categoria}</td>
+                            </tr>
+                        `).join('');
+                    }
+                    
+                    const tablaProveedores = document.getElementById('tabla-proveedores');
+                    if (tablaProveedores) {
+                        tablaProveedores.innerHTML = App.db.proveedores.map(p => `
+                            <tr>
+                                <td>${p.nombre}</td>
+                                <td>${p.rfc}</td>
+                            </tr>
+                        `).join('');
+                    }
+                },
+                
+                async guardarMaterial() {
+                    const codigo = document.getElementById('mat-codigo').value;
+                    const nombre = document.getElementById('mat-nombre').value;
+                    
+                    if (!codigo || !nombre) {
+                        App.ui.toast('Complete código y nombre', 'warning');
+                        return;
+                    }
+                    
+                    const material = {
+                        id: App.utils.uid('MAT'),
+                        codigo: codigo,
+                        nombre: nombre,
+                        categoria: document.getElementById('mat-categoria').value,
+                        unidad: document.getElementById('mat-unidad').value,
+                        color: document.getElementById('mat-color').value,
+                        ancho: parseFloat(document.getElementById('mat-ancho').value) || null,
+                        minStock: parseInt(document.getElementById('mat-min-stock').value) || 0,
+                        stock: 0,
+                        avgCost: 0
+                    };
+                    
+                    App.db.materiales.push(material);
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('materiales', material, material.id);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('Material guardado', 'success');
+                    
+                    document.getElementById('mat-codigo').value = '';
+                    document.getElementById('mat-nombre').value = '';
+                    document.getElementById('mat-color').value = '';
+                    document.getElementById('mat-ancho').value = '';
+                    document.getElementById('mat-min-stock').value = '';
+                    
+                    this.cargarTablas();
+                },
+                
+                async guardarProveedor() {
+                    const nombre = document.getElementById('prov-nombre').value;
+                    
+                    if (!nombre) {
+                        App.ui.toast('Ingrese el nombre del proveedor', 'warning');
+                        return;
+                    }
+                    
+                    const proveedor = {
+                        id: App.utils.uid('PROV'),
+                        nombre: nombre,
+                        rfc: document.getElementById('prov-rfc').value,
+                        contacto: document.getElementById('prov-contacto').value,
+                        url: document.getElementById('prov-url').value
+                    };
+                    
+                    App.db.proveedores.push(proveedor);
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('proveedores', proveedor, proveedor.id);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('Proveedor guardado', 'success');
+                    
+                    document.getElementById('prov-nombre').value = '';
+                    document.getElementById('prov-rfc').value = '';
+                    document.getElementById('prov-contacto').value = '';
+                    document.getElementById('prov-url').value = '';
+                    
+                    this.cargarTablas();
+                },
+                
+                async guardarMaquilero() {
+                    const id = document.getElementById('maq-id').value;
+                    const nombre = document.getElementById('maq-nombre').value;
+                    
+                    if (!id || !nombre) {
+                        App.ui.toast('Complete ID y nombre', 'warning');
+                        return;
+                    }
+                    
+                    const maquilero = { id, nombre };
+                    App.db.maquileros.push(maquilero);
+                    
+                    if (App.state.mode === 'firebase') {
+                        await App.firebase.saveDocument('maquileros', maquilero, id);
+                    } else {
+                        App.storage.save();
+                    }
+                    
+                    App.ui.toast('Maquilero guardado', 'success');
+                    
+                    document.getElementById('maq-id').value = '';
+                    document.getElementById('maq-nombre').value = '';
+                },
+                
+                guardarOperador() {
+                    const id = document.getElementById('op-id').value;
+                    const nombre = document.getElementById('op-nombre').value;
+                    const rol = document.getElementById('op-rol').value;
+                    
+                    if (!id || !nombre) {
+                        App.ui.toast('Complete ID y nombre', 'warning');
+                        return;
+                    }
+                    
+                    App.db.operadores.push({ id, nombre, rol });
+                    App.storage.save();
+                    App.ui.toast('Operador guardado', 'success');
+                    
+                    document.getElementById('op-id').value = '';
+                    document.getElementById('op-nombre').value = '';
+                },
+                
+                async nuevoMaquilero() {
+                    const nombre = prompt('Nombre del nuevo maquilero:');
+                    if (nombre) {
+                        const id = 'MAQ-' + (App.db.maquileros.length + 1).toString().padStart(3, '0');
+                        const maquilero = { id, nombre };
+                        App.db.maquileros.push(maquilero);
+                        
+                        if (App.state.mode === 'firebase') {
+                            await App.firebase.saveDocument('maquileros', maquilero, id);
+                        } else {
+                            App.storage.save();
+                        }
+                        
+                        App.habilitados.cargarSelects();
+                        App.ui.toast('Maquilero creado: ' + id, 'success');
+                    }
+                }
+            },
+            
+            herramientas: {
+                guardarPINs() {
+                    if (!App.auth.requireAdmin()) return;
+                    
+                    const adminPin = document.getElementById('pin-admin').value;
+                    const cortadorPin = document.getElementById('pin-cortador').value;
+                    const maquileroPin = document.getElementById('pin-maquilero').value;
+                    
+                    if (adminPin) App.state.settings.pins.admin = adminPin;
+                    if (cortadorPin) App.state.settings.pins.cortador = cortadorPin;
+                    if (maquileroPin) App.state.settings.pins.maquilero = maquileroPin;
+                    
+                    App.storage.save();
+                    App.ui.toast('PINs actualizados', 'success');
+                },
+                
+                exportarInventario() {
+                    const data = {
+                        fecha: new Date().toISOString(),
+                        materiales: App.db.materiales,
+                        rollos: App.db.rollos,
+                        movimientos: App.db.movimientos.slice(-1000)
+                    };
+                    
+                    App.utils.downloadJSON('inventario-completo.json', data);
+                    App.ui.toast('Inventario exportado', 'success');
+                },
+                
+                backupCompleto() {
+                    const backup = {
+                        version: 'v3.0',
+                        fecha: new Date().toISOString(),
+                        db: App.db,
+                        settings: App.state.settings
+                    };
+                    
+                    App.utils.downloadJSON('backup-textil-' + Date.now() + '.json', backup);
+                    App.ui.toast('Backup completo generado', 'success');
+                },
+                
+                restaurar() {
+                    if (!App.auth.requireAdmin()) return;
+                    
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    input.onchange = (e) => {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        
+                        reader.onload = (event) => {
+                            try {
+                                const data = JSON.parse(event.target.result);
+                                
+                                if (data.db) {
+                                    App.db = data.db;
+                                }
+                                if (data.settings) {
+                                    App.state.settings = data.settings;
+                                }
+                                
+                                App.storage.save();
+                                App.ui.toast('Backup restaurado exitosamente', 'success');
+                                location.reload();
+                            } catch (error) {
+                                App.ui.toast('Error al restaurar backup', 'danger');
+                            }
+                        };
+                        
+                        reader.readAsText(file);
+                    };
+                    
+                    input.click();
+                },
+                
+                cierreMensual() {
+                    if (!App.auth.requireAdmin()) return;
+                    
+                    if (!confirm('¿Ejecutar cierre mensual? Se guardará un snapshot y se limpiarán movimientos antiguos.')) {
+                        return;
+                    }
+                    
+                    const snapshot = {
+                        fecha: new Date().toISOString(),
+                        resumen: {
+                            ordenes_compra: App.db.ordenes_compra.length,
+                            ordenes_corte: App.db.ordenes_corte.length,
+                            movimientos: App.db.movimientos.length,
+                            habilitados: App.db.habilitados.length
+                        },
+                        inventario: App.db.materiales.map(m => ({
+                            codigo: m.codigo,
+                            nombre: m.nombre,
+                            stock: m.categoria === 'TELA' 
+                                ? App.db.rollos.filter(r => r.materialId === m.id).reduce((sum, r) => sum + r.lengthRemain, 0)
+                                : m.stock,
+                            valor: (m.stock || 0) * (m.avgCost || 0)
+                        }))
+                    };
+                    
+                    App.db.snapshots.push(snapshot);
+                    
+                    const keepMovs = parseInt(document.getElementById('keep-movs').value) || 5000;
+                    if (App.db.movimientos.length > keepMovs) {
+                        App.db.movimientos = App.db.movimientos.slice(-keepMovs);
+                    }
+                    
+                    App.storage.save();
+                    App.ui.toast('Cierre mensual ejecutado', 'success');
+                },
+                
+                borrarTodo() {
+                    if (!App.auth.requireAdmin()) return;
+                    
+                    const confirmacion = prompt('⚠️ ADVERTENCIA ⚠️\n\nEsta acción borrará TODOS los datos.\n\nEscriba "BORRAR TODO" para confirmar:');
+                    
+                    if (confirmacion === 'BORRAR TODO') {
+                        this.backupCompleto();
+                        
+                        App.db = {
+                            ordenes_compra: [],
+                            inventario: [],
+                            materiales: [],
+                            rollos: [],
+                            proveedores: [],
+                            maquileros: [],
+                            operadores: [],
+                            ordenes_corte: [],
+                            movimientos: [],
+                            habilitados: [],
+                            terminados: [],
+                            snapshots: []
+                        };
+                        
+                        App.initDefaultData();
+                        App.storage.save();
+                        
+                        App.ui.toast('Base de datos reiniciada. Se creó backup automático.', 'warning');
+                        location.reload();
+                    }
+                }
+            },
+            
+            scanner: {
+                stream: null,
+                targetField: null,
+                detector: null,
+                scanning: false,
+                
+                init() {
+                    if ('BarcodeDetector' in window) {
+                        this.detector = new BarcodeDetector({
+                            formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code']
+                        });
+                    }
+                },
+                
+                open(targetField) {
+                    this.targetField = targetField;
+                    App.modal.abrir('scanner-modal');
+                    this.startCamera();
+                },
+                
+                close() {
+                    this.stopCamera();
+                    App.modal.cerrar('scanner-modal');
+                },
+                
+                async startCamera() {
+                    try {
+                        this.stream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: 'environment' }
+                        });
+                        
+                        const video = document.getElementById('scanner-video');
+                        video.srcObject = this.stream;
+                        
+                        if (this.detector) {
+                            this.scanning = true;
+                            this.scanLoop();
+                        } else {
+                            App.ui.toast('Escáner no soportado, use entrada manual', 'warning');
+                        }
+                    } catch (error) {
+                        App.ui.toast('No se pudo acceder a la cámara', 'danger');
+                    }
+                },
+                
+                stopCamera() {
+                    this.scanning = false;
+                    if (this.stream) {
+                        this.stream.getTracks().forEach(track => track.stop());
+                        this.stream = null;
+                    }
+                },
+                
+                async scanLoop() {
+                    if (!this.scanning) return;
+                    
+                    const video = document.getElementById('scanner-video');
+                    
+                    if (video.readyState >= 2) {
+                        try {
+                            const barcodes = await this.detector.detect(video);
+                            
+                            if (barcodes.length > 0) {
+                                const code = barcodes[0].rawValue;
+                                document.getElementById('scanner-result').value = code;
+                                
+                                if (navigator.vibrate) {
+                                    navigator.vibrate(200);
+                                }
+                                
+                                this.scanning = false;
+                                setTimeout(() => {
+                                    this.scanning = true;
+                                    this.scanLoop();
+                                }, 1000);
+                                
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('Error scanning:', error);
+                        }
+                    }
+                    
+                    requestAnimationFrame(() => this.scanLoop());
+                },
+                
+                aplicar() {
+                    const codigo = document.getElementById('scanner-result').value || 
+                                  document.getElementById('scanner-manual').value;
+                    
+                    if (!codigo) {
+                        App.ui.toast('No hay código para aplicar', 'warning');
+                        return;
+                    }
+                    
+                    if (this.targetField === 'rollo') {
+                        document.getElementById('scanner-codigo').value = codigo;
+                    } else if (this.targetField) {
+                        document.getElementById(this.targetField).value = codigo;
+                    }
+                    
+                    this.close();
+                    App.ui.toast('Código aplicado', 'success');
+                }
+            },
+            
+            modal: {
+                abrir(id) {
+                    const modal = document.getElementById(id);
+                    if (modal) {
+                        modal.classList.add('show');
+                    }
+                },
+                
+                cerrar(id) {
+                    const modal = document.getElementById(id);
+                    if (modal) {
+                        modal.classList.remove('show');
+                    }
+                }
+            },
+            
             storage: {
                 key: 'textile-control-v3',
                 
@@ -2914,11 +4922,6 @@
                         };
                         
                         localStorage.setItem(this.key, JSON.stringify(data));
-                        
-                        // Si está en modo Firebase, también guardar en la nube
-                        if (App.state.mode === 'firebase' && window.firebaseDB) {
-                            // Aquí puedes agregar lógica para sincronizar cambios con Firebase
-                        }
                         
                         App.ui.updateKPIs();
                     } catch (error) {
@@ -2973,45 +4976,6 @@
                 init() {
                     // Los eventos ya están integrados en el HTML con onclick
                 }
-            },
-            
-            // Implementaciones vacías de los módulos faltantes para completar la estructura
-            dashboard: { load() { console.log('Dashboard loaded'); } },
-            compras: { 
-                load() { console.log('Compras loaded'); },
-                mostrarModalNuevaCompra() { console.log('Modal nueva compra'); }
-            },
-            inventario: { 
-                load() { console.log('Inventario loaded'); },
-                vistaActual: 'materiales',
-                filtrarCategoria(cat) { console.log('Filtrar:', cat); },
-                abrirVistaRollos() { console.log('Vista rollos'); },
-                exportar() { console.log('Exportar inventario'); },
-                sincronizarFirebase() { console.log('Sincronizar con Firebase'); }
-            },
-            corte: { 
-                load() { console.log('Corte loaded'); },
-                generarCodigo() { console.log('Generar código'); },
-                verLista() { console.log('Ver lista'); }
-            },
-            habilitados: { load() { console.log('Habilitados loaded'); } },
-            terminados: { load() { console.log('Terminados loaded'); } },
-            movimientos: { load() { console.log('Movimientos loaded'); } },
-            catalogos: { load() { console.log('Catálogos loaded'); } },
-            herramientas: { load() { console.log('Herramientas loaded'); } },
-            scanner: {
-                open(field) { console.log('Scanner open:', field); },
-                close() { console.log('Scanner close'); }
-            },
-            modal: {
-                abrir(id) {
-                    const modal = document.getElementById(id);
-                    if (modal) modal.classList.add('show');
-                },
-                cerrar(id) {
-                    const modal = document.getElementById(id);
-                    if (modal) modal.classList.remove('show');
-                }
             }
         };
         
@@ -3020,6 +4984,7 @@
             // Esperar un momento para que Firebase se cargue
             setTimeout(() => {
                 App.init();
+                App.scanner.init();
             }, 1000);
         });
     </script>
