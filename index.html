@@ -1014,7 +1014,32 @@
         .section {
             display: block;
         }
+    
+        /* === CAMBIO: Indicador visual de escaneo === */
+        .scanner-overlay::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.7);
+            animation: scanline 2.2s linear infinite;
+        }
+        @keyframes scanline {
+            0% { top: 10%; }
+            50% { top: 90%; }
+            100% { top: 10%; }
+        }
+        /* === CAMBIO: Ajustes móviles para modal del escáner === */
+        @media (max-width: 480px) {
+            #scanner-video { max-height: 50vh; }
+            #scanner-status-pill { margin-top: .5rem; }
+        }
+    
     </style>
+
+    <!-- === CAMBIO: QuaggaJS para fallback del escáner === -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 </head>
 <body>
     <!-- Firebase Configuration -->
@@ -1045,13 +1070,13 @@
         
         // Tu configuración de Firebase
         const firebaseConfig = {
-    apiKey: "AIzaSyCCmkGV9dc0w-uOFfdK9eelUVSUU6t6yEM",
-    authDomain: "sistema-textil.firebaseapp.com",
-    projectId: "sistema-textil",
-    storageBucket: "sistema-textil.firebasestorage.app",
-    messagingSenderId: "142982120706",
-    appId: "1:142982120706:web:b99dd6368e9f846a622e1b"
-};
+            apiKey: "AIzaSyCOmkGV9dc0w-uOFfdK9ee1UVSUU6t6yEM",
+            authDomain: "sistema-textil.firebaseapp.com",
+            projectId: "sistema-textil",
+            storageBucket: "sistema-textil.firebasestorage.app",
+            messagingSenderId: "142982120706",
+            appId: "1:142982120706:web:b99dd6368e9f846a622e1b"
+        };
         
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -1980,7 +2005,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Importar Materiales CSV</label>
-                                <input type="file" id="csv-materiales" accept=".csv">
+                                <input type="file" id="csv-materiales" accept=".csv" onchange="App.herramientas.procesarCSVMateriales(event)">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Importar Rollos CSV</label>
@@ -2106,12 +2131,27 @@
                 <h3 class="modal-title">📷 Escáner de Códigos</h3>
                 <button class="modal-close" onclick="App.scanner.close()">✖</button>
             </div>
+            <!-- === CAMBIO: Controles del escáner (cámara/status) === -->
+            <div class="scanner-header">
+                <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                    <button class="btn btn-secondary btn-small" id="btn-toggle-camera" onclick="App.scanner.toggleCamera()">🔄 Cambiar cámara</button>
+                    <button class="btn btn-secondary btn-small" id="btn-restart-scan" onclick="App.scanner.restart()">⟲ Reiniciar</button>
+                    <span class="sync-indicator syncing" id="scanner-status-pill"><span class="sync-dot"></span><span id="scanner-status">Inicializando...</span></span>
+                </div>
+            </div>
+
             <div class="modal-body">
-                <div class="video-container">
+                <div class="video-container" id="scanner-video-container">
                     <video id="scanner-video" muted playsinline></video>
+                    <div id="scanner-stage" style="position:absolute; inset:0;"></div>
                     <div class="scanner-overlay"></div>
                 </div>
                 <div class="form-row mt-3">
+                    <!-- === CAMBIO: Modo manual con teclado numérico para móviles === -->
+                    <div class="form-group">
+                        <label class="form-label">Entrada manual (numérica)</label>
+                        <input type="tel" inputmode="numeric" pattern="[0-9]*" class="form-input" id="scanner-manual-numeric" placeholder="Solo números (rápido en móvil)">
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Último código detectado</label>
                         <input type="text" class="form-input" id="scanner-result" readonly>
@@ -4766,112 +4806,215 @@
                 }
             },
             
+            
             scanner: {
                 stream: null,
                 targetField: null,
                 detector: null,
                 scanning: false,
-                
+                useQuagga: false,
+                currentFacing: 'environment',
+                lastCode: null,
+                lastAt: 0,
+
                 init() {
                     if ('BarcodeDetector' in window) {
-                        this.detector = new BarcodeDetector({
-                            formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code']
-                        });
+                        try {
+                            this.detector = new BarcodeDetector({
+                                formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code', 'upc_a', 'upc_e']
+                            });
+                        } catch(e) {
+                            this.detector = null;
+                        }
+                    }
+                    this.useQuagga = !this.detector && typeof window.Quagga !== 'undefined';
+                },
+
+                setStatus(text, mode='syncing') {
+                    const pill = document.getElementById('scanner-status-pill');
+                    const label = document.getElementById('scanner-status');
+                    if (pill && label) {
+                        pill.className = 'sync-indicator ' + mode;
+                        label.textContent = text;
                     }
                 },
-                
-                open(targetField) {
+
+                async open(targetField) {
                     this.targetField = targetField;
                     App.modal.abrir('scanner-modal');
-                    this.startCamera();
+                    await this.startCamera();
                 },
-                
+
                 close() {
                     this.stopCamera();
                     App.modal.cerrar('scanner-modal');
                 },
-                
+
                 async startCamera() {
+                    this.setStatus('Abriendo cámara...', 'syncing');
+                    const video = document.getElementById('scanner-video');
+                    this.stopCamera();
+
                     try {
-                        this.stream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: 'environment' }
-                        });
-                        
-                        const video = document.getElementById('scanner-video');
-                        video.srcObject = this.stream;
-                        
                         if (this.detector) {
+                            const constraints = {
+                                audio: false,
+                                video: {
+                                    facingMode: this.currentFacing,
+                                    width: { ideal: 1280 },
+                                    height: { ideal: 720 }
+                                }
+                            };
+                            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                            video.srcObject = this.stream;
+                            await video.play().catch(()=>{});
                             this.scanning = true;
-                            this.scanLoop();
+                            this.setStatus('Escaneando...', 'online');
+                            this.scanLoopBD();
+                        } else if (this.useQuagga) {
+                            const target = document.getElementById('scanner-stage') || document.getElementById('scanner-video-container');
+                            const config = {
+                                inputStream: {
+                                    type: "LiveStream",
+                                    target: target,
+                                    constraints: {
+                                        facingMode: this.currentFacing,
+                                        width: { min: 640, ideal: 1280, max: 1920 },
+                                        height: { min: 480, ideal: 720, max: 1080 }
+                                    }
+                                },
+                                locator: { patchSize: "medium", halfSample: true },
+                                numOfWorkers: navigator.hardwareConcurrency ? Math.max(1, navigator.hardwareConcurrency - 1) : 2,
+                                decoder: {
+                                    readers: [
+                                        "code_128_reader",
+                                        "code_39_reader",
+                                        "ean_reader",
+                                        "ean_8_reader",
+                                        "upc_reader",
+                                        "upc_e_reader",
+                                        "code_93_reader"
+                                    ]
+                                },
+                                locate: true
+                            };
+                            await new Promise((resolve, reject) => {
+                                try {
+                                    window.Quagga.init(config, (err) => {
+                                        if (err) return reject(err);
+                                        window.Quagga.start();
+                                        resolve(None)
+                                    });
+                                } catch(e) { reject(e) }
+                            })
+                            var self = this;
+                            window.Quagga.offDetected();
+                            window.Quagga.onDetected(function(result){
+                                try {
+                                    const code = result.codeResult && result.codeResult.code;
+                                    if (code) self.onDetect(code);
+                                } catch(e){}
+                            });
+                            this.setStatus('Escaneando...', 'online');
                         } else {
-                            App.ui.toast('Escáner no soportado, use entrada manual', 'warning');
+                            this.setStatus('Escáner no soportado', 'offline');
+                            App.ui.toast('Este navegador no soporta escaneo con cámara. Use entrada manual.', 'warning');
                         }
-                    } catch (error) {
-                        App.ui.toast('No se pudo acceder a la cámara', 'danger');
+                    } catch (err) {
+                        console.error('startCamera error', err);
+                        this.setStatus('Permiso denegado o no disponible', 'offline');
+                        App.ui.toast('No se pudo acceder a la cámara. Revise permisos.', 'danger');
                     }
                 },
-                
+
                 stopCamera() {
                     this.scanning = false;
                     if (this.stream) {
-                        this.stream.getTracks().forEach(track => track.stop());
+                        try { this.stream.getTracks().forEach(t => t.stop()); } catch(e){}
                         this.stream = null;
                     }
+                    if (typeof window.Quagga !== 'undefined') {
+                        try { window.Quagga.stop(); } catch(e){}
+                    }
+                    this.setStatus('Cámara detenida', 'offline');
                 },
-                
-                async scanLoop() {
-                    if (!this.scanning) return;
-                    
+
+                async restart() {
+                    await this.startCamera();
+                },
+
+                async toggleCamera() {
+                    this.currentFacing = this.currentFacing === 'environment' ? 'user' : 'environment';
+                    await this.startCamera();
+                },
+
+                async scanLoopBD() {
+                    if (!this.scanning || !this.detector) return;
                     const video = document.getElementById('scanner-video');
-                    
-                    if (video.readyState >= 2) {
+                    if (video && video.readyState >= 2) {
                         try {
                             const barcodes = await this.detector.detect(video);
-                            
-                            if (barcodes.length > 0) {
-                                const code = barcodes[0].rawValue;
-                                document.getElementById('scanner-result').value = code;
-                                
-                                if (navigator.vibrate) {
-                                    navigator.vibrate(200);
-                                }
-                                
-                                this.scanning = false;
-                                setTimeout(() => {
-                                    this.scanning = true;
-                                    this.scanLoop();
-                                }, 1000);
-                                
-                                return;
+                            if (barcodes && barcodes.length) {
+                                this.onDetect(barcodes[0].rawValue || '');
                             }
-                        } catch (error) {
-                            console.error('Error scanning:', error);
-                        }
+                        } catch (e) {}
                     }
-                    
-                    requestAnimationFrame(() => this.scanLoop());
+                    if (this.scanning) requestAnimationFrame(() => this.scanLoopBD());
                 },
-                
+
+                beep() {
+                    try {
+                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.type = 'sine';
+                        o.frequency.value = 880;
+                        o.connect(g);
+                        g.connect(ctx.destination);
+                        g.gain.setValueAtTime(0.001, ctx.currentTime);
+                        g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+                        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                        o.start();
+                        o.stop(ctx.currentTime + 0.13);
+                    } catch(e){}
+                },
+
+                onDetect(code) {
+                    const now = Date.now();
+                    if (code === this.lastCode && now - this.lastAt < 800) return;
+                    this.lastCode = code; this.lastAt = now;
+
+                    const out = document.getElementById('scanner-result');
+                    if (out) out.value = code;
+
+                    if (navigator.vibrate) navigator.vibrate(150);
+                    this.beep();
+
+                    if (this.detector) {
+                        this.scanning = false;
+                        setTimeout(() => { this.scanning = true; this.scanLoopBD(); }, 900);
+                    }
+                },
+
                 aplicar() {
-                    const codigo = document.getElementById('scanner-result').value || 
-                                  document.getElementById('scanner-manual').value;
-                    
-                    if (!codigo) {
+                    const code = (document.getElementById('scanner-result').value || '').trim() ||
+                                 (document.getElementById('scanner-manual-numeric')?.value || '').trim() ||
+                                 (document.getElementById('scanner-manual').value || '').trim();
+                    if (!code) {
                         App.ui.toast('No hay código para aplicar', 'warning');
                         return;
                     }
-                    
                     if (this.targetField === 'rollo') {
-                        document.getElementById('scanner-codigo').value = codigo;
+                        document.getElementById('scanner-codigo').value = code;
                     } else if (this.targetField) {
-                        document.getElementById(this.targetField).value = codigo;
+                        const el = document.getElementById(this.targetField);
+                        if (el) el.value = code;
                     }
-                    
                     this.close();
                     App.ui.toast('Código aplicado', 'success');
                 }
             },
-            
+    
             modal: {
                 abrir(id) {
                     const modal = document.getElementById(id);
@@ -4974,7 +5117,8 @@
             
             eventos: {
                 init() {
-                    // Los eventos ya están integrados en el HTML con onclick
+                    // Eventos principales y refuerzos de wiring
+                    try { const el = document.getElementById('csv-materiales'); if (el && !el.onchange) el.addEventListener('change', (e)=> App.herramientas.procesarCSVMateriales(e)); } catch(e){}
                 }
             }
         };
